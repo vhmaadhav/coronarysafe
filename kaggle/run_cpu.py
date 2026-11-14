@@ -46,6 +46,7 @@ def main():
         mask_inputs = [p.parent.parent for p in search_root.rglob("cohort/test_ffr_unet.txt")]
     if len(mask_inputs) > 1:
         raise RuntimeError("expected only one saved mask bundle")
+    mask_counts = {}
     if mask_inputs:
         sys.path.insert(0, str(code))
         from pipeline.label_saved import cohort
@@ -58,8 +59,10 @@ def main():
                     archive.extractall(scratch / "masks")
                 mask_root = scratch / "masks"
             dev, transfer = scratch / "dev.parquet", scratch / "transfer.parquet"
-            cohort(mask_root, "val", ("cas_net", "swin_unetr"), dev)
-            cohort(mask_root, "test", ("ffr_unet",), transfer)
+            mask_counts = {
+                "development": cohort(mask_root, "val", ("cas_net", "swin_unetr"), dev),
+                "transfer": cohort(mask_root, "test", ("ffr_unet",), transfer),
+            }
             run_transfer(command, dev, transfer, output, environment)
     elif dev.is_file() and transfer.is_file():
         run_transfer(command, dev, transfer, output, environment)
@@ -67,6 +70,7 @@ def main():
         print("Paired development and transfer feature tables were unavailable.")
     results = {
         "backend": "kaggle_cpu",
+        "mask_counts": mask_counts,
         "versions": {p: importlib.metadata.version(p) for p in
                      ("numpy", "scipy", "pandas", "pyarrow", "scikit-learn")},
     }

@@ -8,13 +8,12 @@ from pipeline.label_core import _flatten, compute_case
 
 def label_one(args):
     root, method, scan = args
-    return _flatten({
-        **compute_case(root, method, scan, method, mask_only=True),
-        "method": method,
-        "pred_method": method,
-        "scan_id": scan,
-        "status": "ok",
-    })
+    identity = {"method": method, "pred_method": method, "scan_id": scan}
+    try:
+        record = compute_case(root, method, scan, method, mask_only=True)
+    except (OSError, EOFError, ValueError) as error:
+        return _flatten({**identity, "status": "error", "error": type(error).__name__})
+    return _flatten({**record, **identity, "status": "ok"})
 
 
 def cohort(root, split, methods, output):
@@ -31,5 +30,9 @@ def cohort(root, split, methods, output):
     print(f"Labelling {len(jobs)} saved {split} masks on CPU", flush=True)
     with ProcessPoolExecutor(max_workers=4) as pool:
         rows = list(pool.map(label_one, jobs))
-    pd.DataFrame(rows).to_parquet(output, index=False)
-    print(f"Labelled {len(rows)} of {len(jobs)} saved {split} masks", flush=True)
+    table = pd.DataFrame(rows)
+    usable = table.loc[table.status.eq("ok")]
+    usable.to_parquet(output, index=False)
+    counts = {"submitted": len(table), "labelled": len(usable), "excluded": len(table)-len(usable)}
+    print(f"{split} mask counts: {counts}", flush=True)
+    return counts
