@@ -41,7 +41,7 @@ def main():
     )
 
     dev, transfer = (data / name for name in ("development.parquet", "transfer.parquet"))
-    mask_inputs = list(search_root.rglob("saved-inputs.zip"))
+    mask_inputs = list(search_root.rglob("saved-inputs.bundle"))
     if not mask_inputs:
         mask_inputs = [p.parent.parent for p in search_root.rglob("cohort/test_ffr_unet.txt")]
     if len(mask_inputs) > 1:

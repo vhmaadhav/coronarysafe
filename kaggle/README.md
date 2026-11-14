@@ -17,7 +17,7 @@ A previous pilot uses five patient-grouped folds. The report uses a separate rev
 
 ## Unseen-segmenter test
 
-Use `--development` and `--third-model` with completed feature tables, or attach the private dataset containing `saved-inputs.zip` with `--saved-mask-source OWNER/DATASET`. For a mask-based run the archive uses the following structure.
+Use `--development` and `--third-model` with completed feature tables, or attach the private dataset containing `saved-inputs.bundle` with `--saved-mask-source OWNER/DATASET`. For a mask-based run the archive uses the following structure.
 
 ```text
 cohort/val_cas_net.txt

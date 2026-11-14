@@ -45,6 +45,7 @@ function reset() {
 }
 function selectCase() {
   active = cases[Number(select.value)];
+  layers[2].disabled = active.markers.length === 0;
   const points = [...active.reference.flat(), ...active.prediction.flat()];
   const bounds = [0, 1, 2].map(axis => points.reduce(
     ([lo, hi], p) => [Math.min(lo, p[axis]), Math.max(hi, p[axis])],
