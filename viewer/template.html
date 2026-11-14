@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoronarySafe reconstruction review</title>
+<style>
+:root { color-scheme: dark; font: 16px system-ui, sans-serif; color: #eef2f7; background: #111820; }
+body { max-width: 62rem; margin: 0 auto; padding: clamp(1rem, 4vw, 2.5rem); }
+h1 { font-size: clamp(1.35rem, 4vw, 2.2rem); margin: 0 0 1rem; font-weight: 650; }
+.controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem 1rem; margin-bottom: .85rem; }
+button, select { padding: .4rem .65rem; font: inherit; border: 1px solid #556775; border-radius: .35rem; background: #202e3b; color: inherit; }
+input[type="checkbox"] { accent-color: #8fd8ff; }
+canvas { display: block; width: 100%; height: clamp(300px, 62vh, 620px); touch-action: none; border: 1px solid #405162; border-radius: .55rem; background: #0a131a; }
+p { color: #b6c6d4; line-height: 1.55; }
+.ref { color: #70d9ee; } .pred { color: #f7ba70; } .mark { color: #f48f9d; }
+</style>
+<main>
+<h1>CoronarySafe reconstruction review</h1>
+<div class="controls">
+  <label for="case">Case</label><select id="case"></select>
+  <label class="ref"><input type="checkbox" id="reference" checked> Reference</label>
+  <label class="pred"><input type="checkbox" id="prediction" checked> Prediction</label>
+  <label class="mark"><input type="checkbox" id="markers" checked> Failure markers</label>
+  <button id="reset">Reset view</button>
+</div>
+<canvas id="view" tabindex="0" aria-label="Rotatable three-dimensional coronary centerlines"></canvas>
+<p>Drag or use the arrow keys to rotate. Scroll or press + or − to zoom.</p>
+</main>
+<script type="application/json" id="cases">__CASES_JSON__</script>
+<script>
+"use strict";
+const cases = JSON.parse(document.getElementById("cases").textContent);
+const select = document.getElementById("case");
+const canvas = document.getElementById("view");
+const context = canvas.getContext("2d");
+const layers = ["reference", "prediction", "markers"].map(id => document.getElementById(id));
+const colors = {reference: "#70d9ee", prediction: "#f7ba70", markers: "#f48f9d"};
+let active, center, extent, yaw, pitch, zoom, pointer;
+cases.forEach((item, i) => select.add(new Option(item.name, i)));
+function reset() {
+  yaw = -.45;
+  pitch = .22;
+  zoom = 1;
+  draw();
+}
+function selectCase() {
+  active = cases[Number(select.value)];
+  const points = [...active.reference.flat(), ...active.prediction.flat()];
+  const bounds = [0, 1, 2].map(axis => points.reduce(
+    ([lo, hi], p) => [Math.min(lo, p[axis]), Math.max(hi, p[axis])],
+    [Infinity, -Infinity]
+  ));
+  center = bounds.map(([lo, hi]) => (lo + hi) / 2);
+  extent = Math.max(1, Math.hypot(...bounds.map(([lo, hi]) => hi - lo)));
+  reset();
+}
+function draw() {
+  if (!active) return;
+  const {width, height} = canvas.getBoundingClientRect();
+  const density = window.devicePixelRatio || 1;
+  canvas.width = Math.round(width * density);
+  canvas.height = Math.round(height * density);
+  context.setTransform(density, 0, 0, density, 0, 0);
+  const scale = .92 * zoom * Math.min(width, height) / extent;
+  const project = p => {
+    const [x, y, z] = p.map((component, i) => component - center[i]);
+    const horizontal = x * Math.cos(yaw) - y * Math.sin(yaw);
+    const depth = x * Math.sin(yaw) + y * Math.cos(yaw);
+    const vertical = z * Math.cos(pitch) - depth * Math.sin(pitch);
+    return [width / 2 + scale * horizontal, height / 2 - scale * vertical];
+  };
+
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  for (const [toggle, thickness] of [[layers[0], 5], [layers[1], 2.2]]) {
+    if (!toggle.checked) continue;
+    context.strokeStyle = colors[toggle.id];
+    context.lineWidth = thickness;
+    for (const line of active[toggle.id]) {
+      context.beginPath();
+      line.forEach((p, i) => i ? context.lineTo(...project(p)) : context.moveTo(...project(p)));
+      context.stroke();
+    }
+  }
+  if (layers[2].checked) {
+    context.strokeStyle = colors.markers;
+    context.fillStyle = colors.markers;
+    context.lineWidth = 1.5;
+    context.font = "14px system-ui";
+    for (const marker of active.markers) {
+      const [x, y] = project(marker.world_mm);
+      context.beginPath();
+      context.arc(x, y, 8, 0, Math.PI * 2);
+      context.stroke();
+      const textWidth = context.measureText(marker.label).width;
+      context.fillText(marker.label, Math.max(4, Math.min(x + 13, width - textWidth - 4)),
+        Math.max(14, Math.min(y - 10, height - 4)));
+    }
+  }
+}
+function changeZoom(factor) { zoom = Math.min(4, Math.max(.4, zoom * factor)); draw(); }
+function rotate(dx, dy) { yaw += dx; pitch = Math.max(-1.5, Math.min(1.5, pitch + dy)); draw(); }
+select.addEventListener("change", selectCase);
+layers.forEach(layer => layer.addEventListener("change", draw));
+document.getElementById("reset").addEventListener("click", reset);
+canvas.addEventListener("pointerdown", event => {
+  pointer = [event.clientX, event.clientY];
+  canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener("pointermove", event => {
+  if (!pointer) return;
+  rotate((event.clientX - pointer[0]) * .012, (event.clientY - pointer[1]) * .012);
+  pointer = [event.clientX, event.clientY];
+});
+for (const event of ["pointerup", "pointercancel", "lostpointercapture"]) {
+  canvas.addEventListener(event, () => { pointer = null; });
+}
+canvas.addEventListener("wheel", event => {
+  event.preventDefault();
+  changeZoom(Math.exp(-event.deltaY * .001));
+}, {passive: false});
+canvas.addEventListener("keydown", event => {
+  switch (event.key) {
+    case "ArrowLeft": rotate(-.12, 0); break;
+    case "ArrowRight": rotate(.12, 0); break;
+    case "ArrowUp": rotate(0, -.12); break;
+    case "ArrowDown": rotate(0, .12); break;
+    case "+": case "=": changeZoom(1.12); break;
+    case "-": changeZoom(1 / 1.12); break;
+    default: return;
+  }
+  event.preventDefault();
+});
+new ResizeObserver(draw).observe(canvas);
+selectCase();
+</script>
+</html>

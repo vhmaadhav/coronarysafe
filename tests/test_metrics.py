@@ -55,3 +55,12 @@ def test_paired_difference_of_constant_scorers():
         clusters, lambda r: a[r].mean(), lambda r: b[r].mean(), n_boot=100, seed=0
     )
     assert res["lo"] == pytest.approx(0.1) and res["hi"] == pytest.approx(0.1)
+
+
+def test_review_cap_uses_whole_scans_and_averages_cutoff_ties():
+    scores = [2, 2, 2, 1, 1, 1]
+    failures = [1, 0, 0, 0, 0, 0]
+    assert recall_at_budget(scores, failures) == pytest.approx(1 / 3)
+    assert recall_at_budget(scores[::-1], failures[::-1]) == pytest.approx(1 / 3)
+    assert oracle_recall_at_budget([1, 1, 0, 0, 0, 0]) == 0.5
+    assert aurc(scores, failures) == pytest.approx(aurc(scores[::-1], failures[::-1]))

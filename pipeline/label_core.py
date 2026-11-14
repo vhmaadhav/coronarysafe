@@ -17,10 +17,8 @@ import json
 import sys
 import time
 import traceback
+from hashlib import sha256
 from pathlib import Path
-
-import numpy as np
-from scipy import ndimage
 
 REPO = Path(__file__).resolve().parents[1]
 _SRC = REPO / "src"
@@ -65,6 +63,8 @@ def _centerline_path(root, scan, side):
 
 def _to_full(arr, bbox, shape, dtype):
     """Place an array cropped to a half-open bbox into a full-grid array (zeros elsewhere)."""
+    import numpy as np
+
     arr = np.asarray(arr).astype(dtype)
     if bbox is None or tuple(arr.shape) == tuple(shape):
         return arr
@@ -78,6 +78,9 @@ def _to_full(arr, bbox, shape, dtype):
 
 def load_centerlines(root, scan, lumen, affine):
     """Index-space polylines for the left and right GT centerlines, or (None, status)."""
+    import numpy as np
+    from scipy import ndimage
+
     from coronarysafe.io import load_centerline_vtk, world_to_index
 
     polys = []
@@ -101,6 +104,9 @@ def load_centerlines(root, scan, lumen, affine):
 
 
 def _metrics(mask, lumen, sp):
+    import numpy as np
+    from scipy import ndimage
+
     from coronarysafe.geometry import bbox_slices
     from coronarysafe.graph import skeletonize
 
@@ -132,8 +138,10 @@ def _metrics(mask, lumen, sp):
     }
 
 
-def compute_case(root, method, scan, pred_method):
+def compute_case(root, method, scan, pred_method, *, mask_only=False):
     """Compute the QA record for one (method, scan). Raises on missing or inconsistent data."""
+    import numpy as np
+
     from coronarysafe.features.graph_features import compute_graph_features
     from coronarysafe.features.priors import zscore
     from coronarysafe.features.uncertainty import tta_disagreement, uncertainty_features
@@ -148,25 +156,43 @@ def compute_case(root, method, scan, pred_method):
     lumen = gt > 0
 
     pdir = Path(root) / "preds" / pred_method / scan
-    if not (pdir / "meta.json").exists():
-        raise FileNotFoundError(f"no prediction at {pdir}")
-    pmeta = json.loads((pdir / "meta.json").read_text())
+    if mask_only:
+        pmeta = {}
+    else:
+        if not (pdir / "meta.json").exists():
+            raise FileNotFoundError(f"no prediction at {pdir}")
+        pmeta = json.loads((pdir / "meta.json").read_text())
     bbox = pmeta.get("bbox_voxel_half_open") if pmeta.get("prob_cropped") else None
 
-    mask_arr, _, _ = load_nifti(pdir / "mask.nii.gz")
-    if tuple(mask_arr.shape) != tuple(gt.shape):
-        raise ValueError(f"mask shape {mask_arr.shape} != GT shape {gt.shape}")
+    def load_prediction(path, crop=None):
+        arr, _, prediction_affine = load_nifti(path)
+        expected_affine = aff.copy()
+        if crop is None:
+            expected_shape = gt.shape
+        else:
+            start, stop = np.asarray(crop).T
+            if np.any(start < 0) or np.any(stop > gt.shape) or np.any(stop <= start):
+                raise ValueError(f"{path.name}: invalid prediction crop {crop}")
+            expected_shape = tuple(stop - start)
+            expected_affine[:3, 3] = aff[:3, :3] @ start + aff[:3, 3]
+        if arr.shape != expected_shape:
+            raise ValueError(f"{path.name}: prediction shape {arr.shape} != {expected_shape}")
+        if not np.allclose(prediction_affine, expected_affine, rtol=0, atol=0.01):
+            raise ValueError(f"{path.name}: prediction affine differs from reference grid")
+        return arr
+
+    mask_arr = load_prediction(pdir / "mask.nii.gz")
     mask = np.asarray(mask_arr) > 0
 
     prob = None
-    if (pdir / "prob.nii.gz").exists():
-        prob_arr, _, _ = load_nifti(pdir / "prob.nii.gz")
+    if not mask_only and (pdir / "prob.nii.gz").exists():
+        prob_arr = load_prediction(pdir / "prob.nii.gz", bbox)
         prob = _to_full(prob_arr, bbox, gt.shape, np.float32)
 
     flip_masks = []
-    for f in sorted((pdir / "flips").glob("*.nii.gz")) if (pdir / "flips").exists() else []:
-        fa, _, _ = load_nifti(f)
-        flip_masks.append(_to_full(fa, bbox, gt.shape, bool) > 0)
+    flip_paths = [] if mask_only else sorted((pdir / "flips").glob("*.nii.gz"))
+    for f in flip_paths:
+        flip_masks.append(load_prediction(f) > 0)
 
     polys, cl_status = load_centerlines(root, scan, lumen, aff)
     cfg_path = (
@@ -178,7 +204,7 @@ def compute_case(root, method, scan, pred_method):
     met = _metrics(mask, lumen, sp)
     graph = compute_graph_features(mask, sp)
     unc = uncertainty_features(mask, prob, sp) if prob is not None else {}
-    tta = tta_disagreement([mask] + flip_masks) if flip_masks else float("nan")
+    tta = tta_disagreement(flip_masks)
 
     priors_path = Path(root) / "meta" / "priors_v1.json"
     z = {}
@@ -215,6 +241,7 @@ def compute_case(root, method, scan, pred_method):
         "z": z,
         "priors_used": bool(z),
         "prob_present": prob is not None,
+        "prob_def": pmeta.get("prob_def"),
         "pred_warnings": pmeta.get("warnings", []),
     }
 
@@ -224,8 +251,19 @@ def process_case(root, method, scan_id, pred_method=None, force=False):
     scan = str(int(scan_id))
     pred_method = pred_method or method
     out = Path(root) / "qa" / QA_VERSION / method / f"{scan}.json"
-    if out.exists() and not force:
-        if json.loads(out.read_text()).get("status") == "ok":
+    pred_meta = Path(root) / "preds" / pred_method / scan / "meta.json"
+    pred_metadata = pred_meta.read_text() if pred_meta.is_file() else ""
+    pred_signature = sha256(pred_metadata.encode()).hexdigest()
+    if out.exists() and not force and pred_metadata:
+        try:
+            cached = json.loads(out.read_text())
+        except json.JSONDecodeError:
+            cached = {}
+        if (
+            cached.get("status") == "ok"
+            and cached.get("pred_method") == pred_method
+            and cached.get("pred_signature") == pred_signature
+        ):
             return {"status": "skipped", "method": method, "scan_id": scan}
     t0 = time.time()
     try:
@@ -237,15 +275,20 @@ def process_case(root, method, scan_id, pred_method=None, force=False):
         method=method,
         scan_id=scan,
         pred_method=pred_method,
+        pred_signature=pred_signature,
         qa_version=QA_VERSION,
         runtime_s=round(time.time() - t0, 2),
     )
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, indent=1, default=_jsonable))
+    temporary = out.with_suffix(".tmp")
+    temporary.write_text(json.dumps(result, indent=1, default=_jsonable))
+    temporary.replace(out)
     return {"status": result["status"], "method": method, "scan_id": scan}
 
 
 def _jsonable(o):
+    import numpy as np
+
     if isinstance(o, (np.integer,)):
         return int(o)
     if isinstance(o, (np.floating,)):
@@ -283,6 +326,7 @@ def _flatten(d):
         "centerline_fallback": d.get("centerline_fallback"),
         "centerline_status": d.get("centerline_status"),
         "n_flips": d.get("n_flips"),
+        "prob_def": d.get("prob_def"),
         "tta_disagreement": d.get("tta_disagreement"),
         "runtime_s": d.get("runtime_s"),
         "error": d.get("error"),

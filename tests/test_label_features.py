@@ -103,3 +103,19 @@ def test_missing_prediction_writes_error_json(tmp_path):
     assert res["status"] == "error"
     out = json.loads((tmp_path / "qa" / lf.QA_VERSION / "swin_unetr" / "1.json").read_text())
     assert out["status"] == "error" and "no prediction" in out["error"]
+
+
+def test_changed_prediction_invalidates_cache_and_shifted_grid_errors(tmp_path):
+    lf = _load_module()
+    _write_case(tmp_path)
+    assert lf.process_case(str(tmp_path), "cas_net", "1")["status"] == "ok"
+    pdir = tmp_path / "preds" / "cas_net" / "1"
+    path = pdir / "mask.nii.gz"
+    image = nib.load(path)
+    shifted = image.affine.copy()
+    shifted[0, 3] += 1.0
+    nib.save(nib.Nifti1Image(np.asanyarray(image.dataobj), shifted), path)
+    (pdir / "meta.json").write_text(json.dumps({"prob_cropped": False, "tta": True}))
+    assert lf.process_case(str(tmp_path), "cas_net", "1")["status"] == "error"
+    record = tmp_path / "qa" / lf.QA_VERSION / "cas_net" / "1.json"
+    assert "affine differs" in json.loads(record.read_text())["error"]

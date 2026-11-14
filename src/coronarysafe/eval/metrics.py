@@ -16,11 +16,15 @@ def _arrays(scores, other):
     o = np.asarray(other).ravel()
     if s.shape != o.shape:
         raise ValueError("scores and labels must have the same length")
+    if not np.isfinite(s).all():
+        raise ValueError("risk scores must be finite")
     return s, o
 
 
 def _review_count(n, budget):
-    return int(math.ceil(budget * n - 1e-12))
+    if not 0 <= budget <= 1:
+        raise ValueError("review budget must be between 0 and 1")
+    return math.floor(budget * n + 1e-12)
 
 
 def recall_at_budget(scores, is_failure, budget: float = 0.2) -> float:
@@ -31,8 +35,13 @@ def recall_at_budget(scores, is_failure, budget: float = 0.2) -> float:
     if n_fail == 0:
         return float("nan")
     k = _review_count(len(s), budget)
-    order = np.argsort(-s, kind="stable")
-    return float(f[order[:k]].sum() / n_fail)
+    if k == 0:
+        return 0.0
+    cutoff = np.partition(s, len(s) - k)[len(s) - k]
+    above = s > cutoff
+    tied = s == cutoff
+    caught = f[above].sum() + (k - above.sum()) * f[tied].mean()
+    return float(caught / n_fail)
 
 
 def oracle_recall_at_budget(is_failure, budget: float = 0.2) -> float:
@@ -63,8 +72,10 @@ def _aurc_from_ordered(losses_ordered):
 def aurc(scores, losses) -> float:
     """Area under the risk-coverage curve. Most confident (lowest score) kept first."""
     s, loss = _arrays(scores, losses)
-    order = np.argsort(s, kind="stable")
-    return _aurc_from_ordered(loss[order].astype(float))
+    # Average the risk over all possible orderings of equal scores.
+    _, group, count = np.unique(s, return_inverse=True, return_counts=True)
+    mean_loss = np.bincount(group, weights=loss) / count
+    return _aurc_from_ordered(np.repeat(mean_loss, count))
 
 
 def eaurc(scores, losses) -> float:
