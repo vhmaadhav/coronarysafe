@@ -1,0 +1,67 @@
+# CoronarySafe failure taxonomy v1 (RESEARCH_PLAN.md section 3).
+# Not frozen yet: no real predictions have been inspected. Freeze before any QA model is fitted.
+version: taxonomy_v1
+
+label_names:
+  0: background
+  1: LM
+  2: LAD
+  3: LCx
+  4: D1
+  5: D2
+  6: OM1
+  7: OM2
+  8: IM
+  9: RCA
+  10: R-PDA
+  11: R-PLA
+  12: L-PDA
+  13: L-PLA
+  14: Other
+
+left_labels: [1, 2, 3, 4, 5, 6, 7, 8, 12, 13]
+right_labels: [9, 10, 11]
+# "Other" (14) connected components are assigned to the tree they touch most.
+other_label: 14
+
+# Major segments = LM, LAD, LCx, RCA, plus the PDA on the dominant side.
+# Dominance comes from GT PDA sample counts unless passed explicitly.
+major_base_labels: [1, 2, 3, 9]
+pda_labels:
+  right: 10
+  left: 12
+
+centerline:
+  step_mm: 1.0               # GT centerline sampling
+  gt_skeleton_prune_mm: 3.0  # spur pruning when the centerline is derived from the GT skeleton
+
+# F1 (primary): missed/broken segment. A point is UNCOVERED when the nearest predicted
+# lumen voxel is farther than max(tolerance_mm, local GT radius). A contiguous run of
+# uncovered points >= min_run_mm along a GT branch path (runs continue across junctions
+# along parent->child paths) gives F1. Major segment -> severe, otherwise minor.
+f1:
+  tolerance_mm: 1.5
+  min_run_mm: 10.0
+
+# F1b (degraded, reported only): 8 mm cube local Dice below threshold along one branch.
+# Never counted in severe/minor.
+local_dice:
+  cube_mm: 8.0
+  threshold: 0.3
+
+min_run_mm: 10.0             # F2 per-component coverage and F3 run length
+
+f2:
+  cover_mm: 2.0              # a GT point is covered by a predicted component if it lies within 2 mm
+f3:
+  far_mm: 2.0                # predicted skeleton further than this from GT lumen is "far"
+  bridge_min_coverage_mm: 5.0  # one component must cover >= 5 mm of each tree to count as a bridge
+
+# Sensitivity variants (reported next to the main result, never used to choose it).
+sensitivity:
+  - {name: run_5mm, min_run_mm: 5.0}
+  - {name: run_20mm, min_run_mm: 20.0}
+  - {name: tol_1.0mm, tolerance_mm: 1.0}
+  - {name: tol_2.0mm, tolerance_mm: 2.0}
+  - {name: dice_0.2, dice_threshold: 0.2}
+  - {name: dice_0.5, dice_threshold: 0.5}

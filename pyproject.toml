@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coronarysafe"
+version = "0.1.0"
+description = "QA layer for AI coronary-artery segmentations (CTA): graph/uncertainty features and failure taxonomy."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "scipy",
+    "scikit-image",
+    "networkx",
+    "nibabel",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+vtk = ["vtk"]
+dev = ["pytest", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+coronarysafe = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]

@@ -1,0 +1,98 @@
+# CoronarySafe failure taxonomy v2 (RESEARCH_PLAN.md section 3). v1 is kept unchanged in taxonomy_v1.yaml.
+# Not frozen yet: no real predictions have been inspected. Freeze before any QA model is fitted.
+version: taxonomy_v2
+# Only the F3 (far-skeleton) rules differ from v1. F1, F2, F1b and the bridge keep v1 definitions.
+f3_rules: v2
+
+label_names:
+  0: background
+  1: LM
+  2: LAD
+  3: LCx
+  4: D1
+  5: D2
+  6: OM1
+  7: OM2
+  8: IM
+  9: RCA
+  10: R-PDA
+  11: R-PLA
+  12: L-PDA
+  13: L-PLA
+  14: Other
+
+left_labels: [1, 2, 3, 4, 5, 6, 7, 8, 12, 13]
+right_labels: [9, 10, 11]
+# "Other" (14) connected components are assigned to the tree they touch most.
+other_label: 14
+
+# Major segments = LM, LAD, LCx, RCA, plus the PDA on the dominant side.
+# Dominance comes from GT PDA sample counts unless passed explicitly.
+major_base_labels: [1, 2, 3, 9]
+pda_labels:
+  right: 10
+  left: 12
+
+centerline:
+  step_mm: 1.0               # GT centerline sampling
+  gt_skeleton_prune_mm: 3.0  # spur pruning when the centerline is derived from the GT skeleton
+
+# F1 (primary): missed/broken segment. A point is UNCOVERED when the nearest predicted
+# lumen voxel is farther than max(tolerance_mm, local GT radius). A contiguous run of
+# uncovered points >= min_run_mm along a GT branch path (runs continue across junctions
+# along parent->child paths) gives F1. Major segment -> severe, otherwise minor.
+f1:
+  tolerance_mm: 1.5
+  min_run_mm: 10.0
+
+# F1b (degraded, reported only): 8 mm cube local Dice below threshold along one branch.
+# Never counted in severe/minor.
+local_dice:
+  cube_mm: 8.0
+  threshold: 0.3
+
+min_run_mm: 10.0             # F2 per-component coverage and F3 run length
+
+f2:
+  cover_mm: 2.0              # a GT point is covered by a predicted component if it lies within 2 mm
+# F3 rules (v2). Derived from 16 train scans x 5 out-of-fold nnU-Net folds (80 predictions).
+# Far-skeleton runs (>= min_run_mm, > far_mm from the GT lumen) were characterised before these
+# thresholds were chosen (data/local/f3_events.json). Observed for runs >= 10 mm (n=190):
+#   * 95 connected to the predicted tree. 40 of these start within 4 mm of a GT terminal
+#     (distal over-extension, F3a). The other 55 run 2.0-2.6 mm from the GT lumen along the
+#     vessel wall (F3h halo, a thin band around an over-sized prediction). With a 3 mm terminal
+#     cutoff only 10 would have been F3a, which is why the cutoff is 4 mm (see rule below).
+#   * 95 detached (no contact with the predicted tree within 2 mm of GT): median 20 mm from GT,
+#     median length 19 mm, 43 of 95 >= 20 mm.
+#   * All mean radii < 1.0 mm (connected max 0.94, detached max 1.41). No thick run was seen,
+#     so the thick (>= 2 mm) rule is a safety rule with no supporting events yet.
+# Rules:
+#   F3a over-extension (reported only, never severe): connected, mean radius < 1.5 mm, and it
+#       starts within 4 mm of a GT terminal point. 4 mm = far_mm (2) + GT vessel radius (~1.5)
+#       + 0.5 mm discretisation: a continuation of the tip begins where the skeleton leaves the
+#       2 mm band, which is about that far from the terminal sample.
+#   F3h halo (reported only): connected, mean radius < 1.5 mm, not at a terminal, but within
+#       3 mm of the GT lumen. This is the 2-2.6 mm wall band seen above, kept out of severe.
+#   F3b detached false positive: not connected to the predicted tree within 2 mm of GT.
+#       Severe if length >= 20 mm (about half the detached runs) or mean radius >= 2 mm,
+#       otherwise minor.
+#   F3c leak (severe): connected, mean radius >= 2 mm (vein or chamber-like). Also the
+#       left-right bridge (subtype bridge), which is always severe.
+#   F3d thin spur (minor): connected, radius 1.5-2 mm or thin but not explained by F3a/F3h.
+f3:
+  far_mm: 2.0
+  terminal_mm: 4.0
+  halo_mm: 3.0
+  thin_radius_mm: 1.5
+  thick_radius_mm: 2.0
+  detached_severe_length_mm: 20.0
+  bridge_min_coverage_mm: 5.0
+
+# Sensitivity variants (reported next to the main result, never used to choose it).
+sensitivity:
+  - {name: run_5mm, min_run_mm: 5.0}
+  - {name: run_20mm, min_run_mm: 20.0}
+  - {name: tol_1.0mm, tolerance_mm: 1.0}
+  - {name: tol_2.0mm, tolerance_mm: 2.0}
+  - {name: dice_0.2, dice_threshold: 0.2}
+  - {name: dice_0.5, dice_threshold: 0.5}
