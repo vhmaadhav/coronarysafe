@@ -15,5 +15,5 @@ SPLIT="${2:-test}"
 LIMIT="${3:-0}"
 setup_data_root >/dev/null 2>&1 || true
 export DATA_ROOT="${DATA_ROOT:-/root/data}"
-cs_exec "$PY_CS" "$ROOT/droplet/run_labels.py" --methods "$METHODS" --split "$SPLIT" --limit "$LIMIT"
+cs_exec "$PY_CS" "$ROOT/droplet/run_labels.py" --methods "$METHODS" --split "$SPLIT" --limit "$LIMIT" --workers "${LABEL_WORKERS:-4}"
 echo "run_labels: done. Next: bash $ROOT/droplet/fetch.sh <droplet-ip>  (qa/ comes back to the laptop)"

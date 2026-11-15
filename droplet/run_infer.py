@@ -229,7 +229,7 @@ def run_queue(P, jobs, label, workers, budget, progress_s, runlog) -> dict:
     for _ in range(workers):
         jobq.put(None)
     procs = [
-        ctx.Process(target=worker, args=(P, jobq, resq, threads), daemon=True)
+        ctx.Process(target=worker, args=(P, jobq, resq, threads), daemon=False)
         for _ in range(workers)
     ]
     for p in procs:
@@ -323,6 +323,13 @@ def run_queue(P, jobs, label, workers, budget, progress_s, runlog) -> dict:
     return record
 
 
+def _eval_many(pairs, procs: int = 8) -> list:
+    """eval_scan over (P, method, scan) tuples in a spawn process pool (CPU metrics, clDice is slow)."""
+    ctx = mp.get_context("spawn")
+    with ctx.Pool(min(procs, max(1, len(pairs)))) as pool:
+        return pool.starmap(eval_scan, pairs)
+
+
 def verify16(P, workers, budget, progress_s, runlog) -> int:
     scans = verify_scans(P)
     jobs, _ = build_jobs(P, NNUNET_METHODS, "train", False, scans=scans)
@@ -331,11 +338,10 @@ def verify16(P, workers, budget, progress_s, runlog) -> int:
         return rec["rc"]
     table = fold_table(P)
     dice = {s: [float("nan")] * N_FOLDS for s in scans}
-    for s in scans:
-        for k, m in enumerate(NNUNET_METHODS):
-            r = eval_scan(P, m, s)
-            if r.get("dice") is not None:
-                dice[s][k] = float(r["dice"])
+    pairs = [(P, m, s) for s in scans for m in NNUNET_METHODS]
+    for (_, m, s), r in zip(pairs, _eval_many(pairs)):
+        if r.get("dice") is not None:
+            dice[s][NNUNET_METHODS.index(m)] = float(r["dice"])
     summary = verify_summary(scans, {s: table[s] for s in scans}, dice)
     print_verify_table(summary)
     summary.update({"seed": 0, "failures": rec["failures"]})
@@ -349,8 +355,8 @@ def verify16(P, workers, budget, progress_s, runlog) -> int:
 def evaluate_jobs(P, jobs, label) -> None:
     """Per-scan metrics against GT, written to <eval>/<label>.csv. Prints the mean per method."""
     rows = []
-    for m, s, tta in jobs:
-        r = eval_scan(P, m, s)
+    results = _eval_many([(P, m, s) for m, s, _ in jobs])
+    for (m, s, tta), r in zip(jobs, results):
         rows.append(
             {
                 "method": m,
@@ -408,7 +414,10 @@ def main() -> int:
     ap.add_argument("--progress-s", type=float, default=300.0)
     ap.add_argument("--data", default=os.environ.get("DATA_ROOT", "/root/data"))
     ap.add_argument("--runlog", default=str(ROOT / "docs" / "RUNLOG.md"))
+    ap.add_argument("--volumes-root", default="", help="override the CT volume root (workers inherit it)")
     args = ap.parse_args()
+    if args.volumes_root:
+        os.environ["CS_VOLUMES_ROOT"] = args.volumes_root
 
     data = args.data
     P = CorePaths(

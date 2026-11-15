@@ -91,10 +91,21 @@ class CorePaths:
 # ---------------------------------------------------------------------------
 
 
+def is_variant(m: str) -> bool:
+    """`nnunet_f<k>+tta` (mirror TTA, written to preds/nnunet_f<k>_tta) or `<method>@<kind>`
+    (CT volumes_shift/<kind>, written to preds/<method>@<kind>)."""
+    if m.endswith("+tta"):
+        return m[:-4] in NNUNET_METHODS
+    if "@" in m:
+        base, kind = m.split("@", 1)
+        return base in ALL_METHODS and bool(kind)
+    return False
+
+
 def parse_methods(spec: str, allow_oof: bool = False) -> list:
     out = [m.strip() for m in spec.split(",") if m.strip()]
     allowed = ALL_METHODS + ([OOF_METHOD] if allow_oof else [])
-    bad = [m for m in out if m not in allowed]
+    bad = [m for m in out if m not in allowed and not is_variant(m)]
     if bad:
         raise ValueError(f"unknown methods {bad}; choose from {allowed}")
     return out
@@ -130,17 +141,18 @@ _CT_INDEX: dict = {}
 
 def find_ct(P: CorePaths, scan_id: str) -> str:
     """Locate <scan_id>.img.nii.gz anywhere under the staged volume folder."""
-    if P.volumes_root not in _CT_INDEX:
+    root = os.environ.get("CS_VOLUMES_ROOT") or P.volumes_root
+    if root not in _CT_INDEX:
         index = {}
-        pattern = f"{glob.escape(P.volumes_root)}/**/*.img.nii.gz"
+        pattern = f"{glob.escape(root)}/**/*.img.nii.gz"
         for path in glob.glob(pattern, recursive=True):
             name = os.path.basename(path)[: -len(".img.nii.gz")]
             index.setdefault(name, []).append(path)
-        _CT_INDEX[P.volumes_root] = index
-    hits = _CT_INDEX[P.volumes_root].get(str(scan_id), [])
+        _CT_INDEX[root] = index
+    hits = _CT_INDEX[root].get(str(scan_id), [])
     if not hits:
         raise FileNotFoundError(
-            f"no CT volume for scan {scan_id} under {P.volumes_root} (not staged yet?)"
+            f"no CT volume for scan {scan_id} under {root} (not staged yet?)"
         )
     if len(hits) > 1:
         raise RuntimeError(f"scan {scan_id} matches several volumes: {hits}")
@@ -507,6 +519,13 @@ def predict_impl(
     """One method on one scan. Idempotent: skipped when meta.json is current and matches tta."""
     import nibabel as nib
 
+    base, kind = method, None
+    if method.endswith("+tta"):
+        base, tta = method[:-4], True
+        method = base + "_tta"
+    elif "@" in method:
+        base, kind = method.split("@", 1)
+
     out_dir = Path(P.pred) / method / str(scan_id)
     meta_path = out_dir / "meta.json"
     if meta_path.exists():
@@ -524,7 +543,12 @@ def predict_impl(
     os.environ.setdefault("nnUNet_preprocessed", "/tmp/nnunet/preprocessed")
     os.environ.setdefault("nnUNet_results", "/tmp/nnunet/results")
 
-    ct_path = find_ct(P, scan_id)
+    if kind:
+        ct_path = f"{P.data}/imagecas/volumes_shift/{kind}/{scan_id}.img.nii.gz"
+        if not Path(ct_path).exists():
+            raise FileNotFoundError(f"shifted CT missing: {ct_path}")
+    else:
+        ct_path = find_ct(P, scan_id)
     affine = nib.load(ct_path).affine
     if fake_mode():
         if os.environ.get("CORONARYSAFE_FAKE_FAIL") == str(scan_id):
@@ -535,10 +559,10 @@ def predict_impl(
         import SimpleITK as sitk
 
         ref_img = sitk.ReadImage(ct_path)
-        if method in NET_WEIGHTS:
-            res = predict_network(P, method, scan_id, ref_img, tta)
+        if base in NET_WEIGHTS:
+            res = predict_network(P, base, scan_id, ref_img, tta)
         else:
-            res = predict_nnunet(P, method, scan_id, ct_path, ref_img, tta)
+            res = predict_nnunet(P, base, scan_id, ct_path, ref_img, tta)
         expected = tuple(int(s) for s in ref_img.GetSize())
     if res["mask"].shape != expected:
         raise RuntimeError(

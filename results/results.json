@@ -1,0 +1,412 @@
+{
+  "split": "test",
+  "frozen_sha256_verified": true,
+  "frozen_refit_max_coef_diff": 3.608224830031759e-16,
+  "per_segmenter": {
+    "ffr_unet": {
+      "frozen": {
+        "n": 160,
+        "n_critical": 64,
+        "prevalence": 0.4,
+        "k": 32,
+        "recall_at_20": 0.453125,
+        "oracle_at_20": 0.5,
+        "normalised_recall": 0.90625,
+        "auroc": 0.8447265625,
+        "aurc_burden": 6.829188609299756
+      },
+      "rule_components_ge_10mm": {
+        "n": 160,
+        "n_critical": 64,
+        "prevalence": 0.4,
+        "k": 32,
+        "recall_at_20": 0.390625,
+        "oracle_at_20": 0.5,
+        "normalised_recall": 0.78125,
+        "auroc": 0.780517578125,
+        "aurc_burden": 6.759428385460389
+      },
+      "exploratory_g_share_top2": {
+        "n": 160,
+        "n_critical": 64,
+        "prevalence": 0.4,
+        "k": 32,
+        "recall_at_20": 0.4375,
+        "oracle_at_20": 0.5,
+        "normalised_recall": 0.875,
+        "auroc": 0.8473307291666666,
+        "aurc_burden": 6.2013564684989815
+      },
+      "m1m3_sensitivity": {
+        "n": 160,
+        "n_critical": 64,
+        "prevalence": 0.4,
+        "k": 32,
+        "recall_at_20": 0.421875,
+        "oracle_at_20": 0.5,
+        "normalised_recall": 0.84375,
+        "auroc": 0.8445638020833334,
+        "aurc_burden": 6.197361055086008
+      },
+      "S4_dice90_recall": {
+        "frozen": {
+          "n_critical_dice90": 2,
+          "recall": 0.0
+        },
+        "rule": {
+          "n_critical_dice90": 2,
+          "recall": 0.0
+        }
+      },
+      "paired_frozen_minus_rule": {
+        "estimate": 0.125,
+        "lo": -0.0028566919191918617,
+        "hi": 0.23864471925133687
+      },
+      "paired_m1m3_minus_rule": {
+        "estimate": 0.0625,
+        "lo": -0.026810515873015844,
+        "hi": 0.22502130681818158
+      }
+    },
+    "cas_net": {
+      "frozen": {
+        "n": 160,
+        "n_critical": 34,
+        "prevalence": 0.2125,
+        "k": 32,
+        "recall_at_20": 0.5882352941176471,
+        "oracle_at_20": 0.9411764705882353,
+        "normalised_recall": 0.625,
+        "auroc": 0.8130252100840336,
+        "aurc_burden": 3.2345337119115967
+      },
+      "rule_components_ge_10mm": {
+        "n": 160,
+        "n_critical": 34,
+        "prevalence": 0.2125,
+        "k": 32,
+        "recall_at_20": 0.4919786096256684,
+        "oracle_at_20": 0.9411764705882353,
+        "normalised_recall": 0.5227272727272727,
+        "auroc": 0.798202614379085,
+        "aurc_burden": 3.3940489511153666
+      },
+      "exploratory_g_share_top2": {
+        "n": 160,
+        "n_critical": 34,
+        "prevalence": 0.2125,
+        "k": 32,
+        "recall_at_20": 0.5588235294117647,
+        "oracle_at_20": 0.9411764705882353,
+        "normalised_recall": 0.59375,
+        "auroc": 0.8445378151260505,
+        "aurc_burden": 2.9291471391067248
+      },
+      "m1m3_sensitivity": {
+        "n": 160,
+        "n_critical": 34,
+        "prevalence": 0.2125,
+        "k": 32,
+        "recall_at_20": 0.5882352941176471,
+        "oracle_at_20": 0.9411764705882353,
+        "normalised_recall": 0.625,
+        "auroc": 0.8363678804855276,
+        "aurc_burden": 2.8122850547800446
+      },
+      "S4_dice90_recall": {
+        "frozen": {
+          "n_critical_dice90": 12,
+          "recall": 0.25
+        },
+        "rule": {
+          "n_critical_dice90": 12,
+          "recall": 0.3333333333333333
+        }
+      },
+      "paired_frozen_minus_rule": {
+        "estimate": 0.10227272727272729,
+        "lo": -0.03448687842458705,
+        "hi": 0.22538947947214077
+      },
+      "paired_m1m3_minus_rule": {
+        "estimate": 0.10227272727272729,
+        "lo": -0.03125,
+        "hi": 0.22917410714285727
+      }
+    },
+    "swin_unetr": {
+      "frozen": {
+        "n": 160,
+        "n_critical": 45,
+        "prevalence": 0.28125,
+        "k": 32,
+        "recall_at_20": 0.5111111111111111,
+        "oracle_at_20": 0.7111111111111111,
+        "normalised_recall": 0.7187499999999999,
+        "auroc": 0.8096618357487924,
+        "aurc_burden": 3.2364436166221147
+      },
+      "rule_components_ge_10mm": {
+        "n": 160,
+        "n_critical": 45,
+        "prevalence": 0.28125,
+        "k": 32,
+        "recall_at_20": 0.3951690821256038,
+        "oracle_at_20": 0.7111111111111111,
+        "normalised_recall": 0.5557065217391304,
+        "auroc": 0.7365217391304347,
+        "aurc_burden": 3.303740359672145
+      },
+      "exploratory_g_share_top2": {
+        "n": 160,
+        "n_critical": 45,
+        "prevalence": 0.28125,
+        "k": 32,
+        "recall_at_20": 0.4888888888888889,
+        "oracle_at_20": 0.7111111111111111,
+        "normalised_recall": 0.6875,
+        "auroc": 0.8114009661835748,
+        "aurc_burden": 3.1047181437667426
+      },
+      "m1m3_sensitivity": {
+        "n": 160,
+        "n_critical": 45,
+        "prevalence": 0.28125,
+        "k": 32,
+        "recall_at_20": 0.5111111111111111,
+        "oracle_at_20": 0.7111111111111111,
+        "normalised_recall": 0.7187499999999999,
+        "auroc": 0.8193236714975846,
+        "aurc_burden": 3.0350414965656585
+      },
+      "S4_dice90_recall": {
+        "frozen": {
+          "n_critical_dice90": 3,
+          "recall": 0.6666666666666666
+        },
+        "rule": {
+          "n_critical_dice90": 3,
+          "recall": 0.0
+        }
+      },
+      "paired_frozen_minus_rule": {
+        "estimate": 0.1630434782608695,
+        "lo": 0.03233816964285716,
+        "hi": 0.3181818181818181
+      },
+      "paired_m1m3_minus_rule": {
+        "estimate": 0.1630434782608695,
+        "lo": 0.04017087438423654,
+        "hi": 0.2974713460031345
+      }
+    },
+    "nnunet_mv": {
+      "frozen": {
+        "n": 160,
+        "n_critical": 30,
+        "prevalence": 0.1875,
+        "k": 32,
+        "recall_at_20": 0.6,
+        "oracle_at_20": 1.0,
+        "normalised_recall": 0.6,
+        "auroc": 0.8138461538461539,
+        "aurc_burden": 2.1306581688851525
+      },
+      "rule_components_ge_10mm": {
+        "n": 160,
+        "n_critical": 30,
+        "prevalence": 0.1875,
+        "k": 32,
+        "recall_at_20": 0.4202898550724638,
+        "oracle_at_20": 1.0,
+        "normalised_recall": 0.4202898550724638,
+        "auroc": 0.7338461538461539,
+        "aurc_burden": 2.3205378042910914
+      },
+      "exploratory_g_share_top2": {
+        "n": 160,
+        "n_critical": 30,
+        "prevalence": 0.1875,
+        "k": 32,
+        "recall_at_20": 0.5,
+        "oracle_at_20": 1.0,
+        "normalised_recall": 0.5,
+        "auroc": 0.7971794871794872,
+        "aurc_burden": 1.9302725296995047
+      },
+      "m1m3_sensitivity": {
+        "n": 160,
+        "n_critical": 30,
+        "prevalence": 0.1875,
+        "k": 32,
+        "recall_at_20": 0.5666666666666667,
+        "oracle_at_20": 1.0,
+        "normalised_recall": 0.5666666666666667,
+        "auroc": 0.808974358974359,
+        "aurc_burden": 1.9549918862053324
+      },
+      "S4_dice90_recall": {
+        "frozen": {
+          "n_critical_dice90": 8,
+          "recall": 0.5
+        },
+        "rule": {
+          "n_critical_dice90": 8,
+          "recall": 0.125
+        }
+      },
+      "paired_frozen_minus_rule": {
+        "estimate": 0.17971014492753618,
+        "lo": 0.04160843685300219,
+        "hi": 0.36337344720496884
+      },
+      "paired_m1m3_minus_rule": {
+        "estimate": 0.14637681159420285,
+        "lo": 0.008218412618083691,
+        "hi": 0.2946178451178451
+      }
+    }
+  },
+  "S": {
+    "S1_frozen_ffr_NR_ge_0.75": {
+      "value": 0.90625,
+      "pass": true
+    },
+    "S2_frozen_minus_rule_ge_0.10_CI_gt_0": {
+      "estimate": 0.125,
+      "ci_lo": -0.0028566919191918617,
+      "ci_hi": 0.23864471925133687,
+      "pass": false
+    },
+    "S3_noninferior_vs_best_ensemble_ge_-0.05": {
+      "difference": 0.40625,
+      "ci95": [
+        0.15625,
+        0.5625
+      ],
+      "pass": true
+    },
+    "S4_dice90_critical_recall_frozen_ffr": {
+      "n_critical_dice90": 2,
+      "recall": 0.0
+    },
+    "S5": "not implemented (scan-level model, no segment-level score)"
+  },
+  "LOSO": {
+    "ffr_unet": {
+      "model": {
+        "n": 160,
+        "n_critical": 64,
+        "prevalence": 0.4,
+        "k": 32,
+        "recall_at_20": 0.453125,
+        "oracle_at_20": 0.5,
+        "normalised_recall": 0.90625,
+        "auroc": 0.8447265625,
+        "aurc_burden": 6.829188609299756
+      },
+      "rule": {
+        "n": 160,
+        "n_critical": 64,
+        "prevalence": 0.4,
+        "k": 32,
+        "recall_at_20": 0.390625,
+        "oracle_at_20": 0.5,
+        "normalised_recall": 0.78125,
+        "auroc": 0.780517578125,
+        "aurc_burden": 6.759428385460389
+      },
+      "paired_model_minus_rule": {
+        "estimate": 0.125,
+        "lo": -0.0028566919191918617,
+        "hi": 0.23864471925133687
+      }
+    },
+    "cas_net": {
+      "model": {
+        "n": 160,
+        "n_critical": 34,
+        "prevalence": 0.2125,
+        "k": 32,
+        "recall_at_20": 0.5588235294117647,
+        "oracle_at_20": 0.9411764705882353,
+        "normalised_recall": 0.59375,
+        "auroc": 0.7997198879551821,
+        "aurc_burden": 3.3943847084118666
+      },
+      "rule": {
+        "n": 160,
+        "n_critical": 34,
+        "prevalence": 0.2125,
+        "k": 32,
+        "recall_at_20": 0.4919786096256684,
+        "oracle_at_20": 0.9411764705882353,
+        "normalised_recall": 0.5227272727272727,
+        "auroc": 0.798202614379085,
+        "aurc_burden": 3.3940489511153666
+      },
+      "paired_model_minus_rule": {
+        "estimate": 0.07102272727272729,
+        "lo": -0.07483963815789464,
+        "hi": 0.22822966507177042
+      }
+    },
+    "swin_unetr": {
+      "model": {
+        "n": 160,
+        "n_critical": 45,
+        "prevalence": 0.28125,
+        "k": 32,
+        "recall_at_20": 0.5555555555555556,
+        "oracle_at_20": 0.7111111111111111,
+        "normalised_recall": 0.78125,
+        "auroc": 0.8102415458937199,
+        "aurc_burden": 3.113420381889063
+      },
+      "rule": {
+        "n": 160,
+        "n_critical": 45,
+        "prevalence": 0.28125,
+        "k": 32,
+        "recall_at_20": 0.3951690821256038,
+        "oracle_at_20": 0.7111111111111111,
+        "normalised_recall": 0.5557065217391304,
+        "auroc": 0.7365217391304347,
+        "aurc_burden": 3.303740359672145
+      },
+      "paired_model_minus_rule": {
+        "estimate": 0.22554347826086962,
+        "lo": 0.07985321969696965,
+        "hi": 0.36932435770750993
+      }
+    }
+  },
+  "S3": {
+    "available": true,
+    "ensemble_comparator_nr": {
+      "pairwise_dice": 0.43333333333333335,
+      "pairwise_cldice": 0.5,
+      "pairwise_betti0": 0.37916666666666665
+    },
+    "best_comparator": "pairwise_cldice",
+    "frozen_on_nnunet_mv": {
+      "n": 160,
+      "n_critical": 30,
+      "prevalence": 0.1875,
+      "k": 32,
+      "recall_at_20": 0.6,
+      "oracle_at_20": 1.0,
+      "normalised_recall": 0.6,
+      "auroc": 0.8138461538461539,
+      "aurc_burden": 2.1306581688851525
+    },
+    "frozen_on_ffr_nr": 0.90625,
+    "difference_frozen_ffr_minus_best_comparator": 0.40625,
+    "ci95": [
+      0.15625,
+      0.5625
+    ],
+    "units_differ": "ffr_unet units vs nnU-Net majority-vote units (same 160 patients)"
+  }
+}
