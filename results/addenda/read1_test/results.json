@@ -1,0 +1,252 @@
+{
+ "split": "test",
+ "code_version": "sealed-read1-v1",
+ "n_scans": 160,
+ "budget_k": 32,
+ "M": {
+  "m0": {
+   "n": 160,
+   "P": 64,
+   "K": 32,
+   "oracle_recall": 0.5,
+   "a_both": 20.0,
+   "b_model_only": 9.0,
+   "c_rule_only": 5.0,
+   "n_neither": 30.0,
+   "C_model": 29.0,
+   "C_rule": 25.0,
+   "NR_model": 0.90625,
+   "NR_rule": 0.78125,
+   "delta_NR": 0.125,
+   "delta_NR_from_b_minus_c": 0.125,
+   "tied_units_model": 0,
+   "tied_units_rule": 0,
+   "note": "a = sum(wm*wr) over critical units; exact when no ties, otherwise assumes independent tie-breaking"
+  },
+  "m1": {
+   "resamples": 20000,
+   "seed": 0,
+   "point": 0.125,
+   "ci_lo": -0.00694444444444442,
+   "ci_hi": 0.23505434782608692,
+   "nan_draws": 0,
+   "check_2000": {
+    "resamples": 2000,
+    "seed": 0,
+    "point": 0.125,
+    "ci_lo": -0.0028566919191918617,
+    "ci_hi": 0.23864471925133687,
+    "nan_draws": 0,
+    "posted": {
+     "point": 0.125,
+     "lo": -0.003,
+     "hi": 0.239
+    },
+    "reproduces_posted_within_0.002": true
+   },
+   "bar_met": false
+  },
+  "m2": {
+   "b": 9.0,
+   "c": 5.0,
+   "p_two_sided_exact": 0.4239501953125
+  },
+  "m4": {
+   "AURC_model": 0.19134626324090057,
+   "AURC_rule": 0.22060966800360587,
+   "dAURC_model_minus_rule": -0.02926340476270531,
+   "dAURC_ci": [
+    -0.07544894905478784,
+    0.020278163288472786
+   ],
+   "AUROC_model": 0.8447265625,
+   "AUROC_rule": 0.780517578125,
+   "dAUROC_model_minus_rule": 0.064208984375,
+   "dAUROC_ci": [
+    0.006744899908473332,
+    0.11941192682885335
+   ],
+   "resamples": 2000,
+   "seed": 0,
+   "loss": "critical indicator (binary failure)"
+  },
+  "m5": {
+   "160": {
+    "N": 160,
+    "power": 0.395,
+    "mean_delta_NR_sim": 0.11479977679299241,
+    "outer": 200,
+    "inner": 500,
+    "label": "optimistic"
+   },
+   "240": {
+    "N": 240,
+    "power": 0.56,
+    "mean_delta_NR_sim": 0.11615252197567302,
+    "outer": 200,
+    "inner": 500,
+    "label": "optimistic"
+   },
+   "320": {
+    "N": 320,
+    "power": 0.635,
+    "mean_delta_NR_sim": 0.11514202022096615,
+    "outer": 200,
+    "inner": 500,
+    "label": "optimistic"
+   },
+   "480": {
+    "N": 480,
+    "power": 0.67,
+    "mean_delta_NR_sim": 0.11854364090272375,
+    "outer": 200,
+    "inner": 500,
+    "label": "optimistic"
+   }
+  }
+ },
+ "J": {
+  "folds": [
+   {
+    "fold": "nnunet_f0",
+    "n": 160,
+    "P": 32,
+    "K": 32,
+    "C_model": 18.0,
+    "C_rule": 16.714285714285715,
+    "precision_model": 0.5625,
+    "precision_rule": 0.5223214285714286,
+    "recall_model": 0.5625,
+    "recall_rule": 0.5223214285714286,
+    "NR_model": 0.5625,
+    "NR_rule": 0.5223214285714286,
+    "D_f": 0.0401785714285714,
+    "AUROC_model": 0.77978515625,
+    "AUROC_rule": 0.7423095703125,
+    "dAUROC_model_minus_rule": 0.0374755859375,
+    "EXPLORATORY_NR_share_top2": 0.5625,
+    "EXPLORATORY_D_share_top2": 0.0
+   },
+   {
+    "fold": "nnunet_f1",
+    "n": 160,
+    "P": 30,
+    "K": 32,
+    "C_model": 17.0,
+    "C_rule": 11.866666666666665,
+    "precision_model": 0.53125,
+    "precision_rule": 0.3708333333333333,
+    "recall_model": 0.5666666666666667,
+    "recall_rule": 0.3955555555555555,
+    "NR_model": 0.5666666666666667,
+    "NR_rule": 0.39555555555555555,
+    "D_f": 0.1711111111111111,
+    "AUROC_model": 0.8315384615384616,
+    "AUROC_rule": 0.7047435897435896,
+    "dAUROC_model_minus_rule": 0.12679487179487192,
+    "EXPLORATORY_NR_share_top2": 0.5,
+    "EXPLORATORY_D_share_top2": 0.06666666666666665
+   },
+   {
+    "fold": "nnunet_f2",
+    "n": 160,
+    "P": 32,
+    "K": 32,
+    "C_model": 17.0,
+    "C_rule": 13.210526315789473,
+    "precision_model": 0.53125,
+    "precision_rule": 0.412828947368421,
+    "recall_model": 0.53125,
+    "recall_rule": 0.412828947368421,
+    "NR_model": 0.53125,
+    "NR_rule": 0.412828947368421,
+    "D_f": 0.11842105263157898,
+    "AUROC_model": 0.775634765625,
+    "AUROC_rule": 0.7264404296875,
+    "dAUROC_model_minus_rule": 0.0491943359375,
+    "EXPLORATORY_NR_share_top2": 0.5,
+    "EXPLORATORY_D_share_top2": 0.03125
+   },
+   {
+    "fold": "nnunet_f3",
+    "n": 160,
+    "P": 32,
+    "K": 32,
+    "C_model": 19.0,
+    "C_rule": 14.0,
+    "precision_model": 0.59375,
+    "precision_rule": 0.4375,
+    "recall_model": 0.59375,
+    "recall_rule": 0.4375,
+    "NR_model": 0.59375,
+    "NR_rule": 0.4375,
+    "D_f": 0.15625,
+    "AUROC_model": 0.818359375,
+    "AUROC_rule": 0.75439453125,
+    "dAUROC_model_minus_rule": 0.06396484375,
+    "EXPLORATORY_NR_share_top2": 0.53125,
+    "EXPLORATORY_D_share_top2": 0.0625
+   },
+   {
+    "fold": "nnunet_f4",
+    "n": 160,
+    "P": 37,
+    "K": 32,
+    "C_model": 22.0,
+    "C_rule": 19.25,
+    "precision_model": 0.6875,
+    "precision_rule": 0.6015625,
+    "recall_model": 0.5945945945945946,
+    "recall_rule": 0.5202702702702703,
+    "NR_model": 0.6875,
+    "NR_rule": 0.6015625,
+    "D_f": 0.0859375,
+    "AUROC_model": 0.8288288288288288,
+    "AUROC_rule": 0.7948802460997584,
+    "dAUROC_model_minus_rule": 0.03394858272907042,
+    "EXPLORATORY_NR_share_top2": 0.6875,
+    "EXPLORATORY_D_share_top2": 0.0
+   }
+  ],
+  "D_A": 0.1143796470342523,
+  "D_A_ci": [
+   0.029746313532104093,
+   0.20701562980451702
+  ],
+  "bootstrap_resamples": 2000,
+  "seed": 0,
+  "nan_draws": 0,
+  "n_scans": 160,
+  "success": true,
+  "bar": {
+   "D_A_min": 0.1,
+   "ci_lo_min_exclusive": 0.0
+  },
+  "families": {
+   "A_nnunet_f0_f4": "included as one family (five folds averaged)",
+   "B_cascade": "EXCLUDED (decided before outcome: checkpoint absent, split unverified)"
+  },
+  "per_fold_D_point": {
+   "nnunet_f0": 0.0401785714285714,
+   "nnunet_f1": 0.1711111111111111,
+   "nnunet_f2": 0.11842105263157898,
+   "nnunet_f3": 0.15625,
+   "nnunet_f4": 0.0859375
+  }
+ },
+ "excluded": {
+  "sealed_flag_mismatch_vs_recomputed_top20": 0,
+  "J_common_scans": 160,
+  "FFR_scored": 160
+ },
+ "assumptions": [
+  "S2 bootstrap reuses eval.bootstrap.paired_bootstrap_difference with seed 0, exactly as m4/test_eval.py; the 2,000-resample check must reproduce the posted CI.",
+  "FFR-UNet test scores come from the sealed flags.csv `score` and the features.csv rule/critical columns (read, not recomputed).",
+  "nnU-Net f0-f4 scores use m4/valscore helpers (sha256 check, clamp 1e-6, frozen 22-feature LR, NaN-only median imputation) and m4/score._unit_job; critical labels come from the unit record.",
+  "AURC uses the critical indicator as the loss.",
+  "m0 a-cell uses the product of fractional memberships; exact when no ties.",
+  "Family B is excluded (decided before outcome); the five folds are averaged as one family.",
+  "Units with a missing feature or unit error are excluded and counted; J uses scans present in all five folds."
+ ],
+ "manifest_sha256": "dee40fabf2d051bd0c6e2f593ca2adab2a5c7e9f6e007b4d83c43d284bb4e0af"
+}

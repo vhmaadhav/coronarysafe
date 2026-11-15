@@ -7,7 +7,7 @@ import pytest
 from coronarysafe.labels.taxonomy import label_failures, load_taxonomy_config
 from phantoms import SPACING, build_gt, tube_mask
 
-CFG2 = load_taxonomy_config(Path(__file__).resolve().parents[1] / "configs" / "taxonomy_v2.yaml")
+CFG2 = load_taxonomy_config(Path(__file__).resolve().parents[1] / "configs" / "archive" / "taxonomy_v2.yaml")
 
 
 @pytest.fixture(scope="module")

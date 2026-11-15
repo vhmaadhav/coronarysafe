@@ -1,0 +1,100 @@
+{
+  "split": "val",
+  "methods": [
+    "cas_net",
+    "swin_unetr"
+  ],
+  "n_units_ok": 160,
+  "n_units_not_ok": 0,
+  "agreement": {
+    "per_segmenter": {
+      "cas_net": {
+        "n": 80,
+        "prev_v3": 0.1125,
+        "prev_alt": 0.9125,
+        "patients": 80,
+        "percent_agreement": {
+          "estimate": 0.2,
+          "lo": 0.1125,
+          "hi": 0.3
+        },
+        "kappa": {
+          "estimate": 0.024018299656881428,
+          "lo": 0.005681818181818155,
+          "hi": 0.05472636815920399
+        },
+        "ac1": {
+          "estimate": -0.599000624609619,
+          "lo": -0.7725074114526448,
+          "hi": -0.4
+        },
+        "pabak": {
+          "estimate": -0.6,
+          "lo": -0.775,
+          "hi": -0.4
+        }
+      },
+      "swin_unetr": {
+        "n": 80,
+        "prev_v3": 0.15,
+        "prev_alt": 0.9,
+        "patients": 80,
+        "percent_agreement": {
+          "estimate": 0.25,
+          "lo": 0.1625,
+          "hi": 0.3375
+        },
+        "kappa": {
+          "estimate": 0.03846153846153849,
+          "lo": 0.012345679012345682,
+          "hi": 0.07826086956521743
+        },
+        "ac1": {
+          "estimate": -0.4962593516209476,
+          "lo": -0.6747383221371663,
+          "hi": -0.2991880074953153
+        },
+        "pabak": {
+          "estimate": -0.5,
+          "lo": -0.675,
+          "hi": -0.32499999999999996
+        }
+      }
+    },
+    "pooled": {
+      "n": 160,
+      "prev_v3": 0.13125,
+      "prev_alt": 0.90625,
+      "patients": 80,
+      "percent_agreement": {
+        "estimate": 0.225,
+        "lo": 0.14375,
+        "hi": 0.3125
+      },
+      "kappa": {
+        "estimate": 0.030776746458231547,
+        "lo": 0.010746038217002528,
+        "hi": 0.0630934796370542
+      },
+      "ac1": {
+        "estimate": -0.5478233733811827,
+        "lo": -0.709228429958283,
+        "hi": -0.3675664822572832
+      },
+      "pabak": {
+        "estimate": -0.55,
+        "lo": -0.7125,
+        "hi": -0.375
+      }
+    },
+    "v3_col": "critical_v3_r",
+    "alt_col": "critical_alt_r"
+  },
+  "restricted": true,
+  "rescore_against_critical_alt": null,
+  "taxonomy_config": "/root/coronarysafe-li/configs/taxonomy_v3.yaml",
+  "max_mm": 3.0,
+  "other_label": 14,
+  "n_boot": 2000,
+  "seed": 0
+}

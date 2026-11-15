@@ -1,4 +1,4 @@
-"""Local test of the Modal per-case job logic (modal/label_features.py) on a synthetic case
+"""Local test of the Modal per-case job logic (infra/modal/label_features.py) on a synthetic case
 laid out like the Volume: GT NIfTI, LPS centerline VTKs, prediction mask/prob/meta."""
 
 import importlib.util
@@ -7,6 +7,7 @@ from pathlib import Path
 
 import nibabel as nib
 import numpy as np
+import pytest
 
 from phantoms import SPACING, TUBES, build_gt, lad_gap
 
@@ -15,7 +16,9 @@ GT_DIR = "imagecas_x/ImageCAS-X_dataset_v3"
 
 
 def _load_module():
-    path = REPO / "modal" / "label_features.py"
+    # The Modal entry point imports the modal package, which is not in the droplet inference venv.
+    pytest.importorskip("modal", reason="modal is not installed; Modal entry point not exercised")
+    path = REPO / "infra" / "modal" / "label_features.py"
     spec = importlib.util.spec_from_file_location("label_features", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

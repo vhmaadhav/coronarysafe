@@ -1,9 +1,21 @@
-.venv/
-data/
-outputs/
+# Python
 __pycache__/
 *.pyc
 *.egg-info/
+.venv/
 .pytest_cache/
 .ruff_cache/
-*.nii.gz
+
+# Data and large artefacts (never committed)
+data/
+outputs/
+*.nii*
+*.npz
+
+# Paper build artefacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/arxiv_submission.tar.gz

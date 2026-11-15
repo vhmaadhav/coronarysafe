@@ -1,0 +1,17 @@
+{
+ "n_val_units": 640,
+ "n_dev_units": 160,
+ "methods": [
+  "cas_net",
+  "ffr_unet",
+  "nnunet_f0",
+  "nnunet_f1",
+  "nnunet_f2",
+  "nnunet_f3",
+  "nnunet_f4",
+  "swin_unetr"
+ ],
+ "skipped_by_method": {},
+ "n1_note": "flag cut-offs perturbed on stored feature values (see module docstring deviation)",
+ "n2_note": "IN-SAMPLE: refit and evaluated on the same 160 dev units; post-hoc, not test evidence"
+}

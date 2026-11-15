@@ -1,6 +1,6 @@
 """Method-agnostic inference core for the CoronarySafe QA study.
 
-Used by modal/infer.py (Modal volume mounted at /data) and droplet/run_infer.py (MI300X
+Used by infra/modal/infer.py (Modal volume mounted at /data) and infra/droplet/run_infer.py (MI300X
 droplet, data under /root/data). Nothing here assumes a host: every path and the device
 come from a CorePaths object. Heavy imports (torch, nnunetv2, SimpleITK, the ImageCAS-X
 repo) are lazy, so importing this module needs only the standard library.

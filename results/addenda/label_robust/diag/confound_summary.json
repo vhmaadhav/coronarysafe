@@ -1,0 +1,84 @@
+{
+ "n_ok": 160,
+ "n_err": 0,
+ "pooled": {
+  "n": 160,
+  "prev_v3": 0.13125,
+  "prev_alt": 0.14375,
+  "patients": 80,
+  "percent_agreement": {
+   "estimate": 0.9875,
+   "lo": 0.96875,
+   "hi": 1.0
+  },
+  "kappa": {
+   "estimate": 0.9473164306881793,
+   "lo": 0.8666666666666668,
+   "hi": 1.0
+  },
+  "ac1": {
+   "estimate": 0.9836132732486687,
+   "lo": 0.9542974663657916,
+   "hi": 1.0
+  },
+  "pabak": {
+   "estimate": 0.9750000000000001,
+   "lo": 0.9375,
+   "hi": 1.0
+  }
+ },
+ "per_method": {
+  "cas_net": {
+   "n": 80,
+   "prev_v3": 0.1125,
+   "prev_alt": 0.1125,
+   "patients": 80,
+   "percent_agreement": {
+    "estimate": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   },
+   "kappa": {
+    "estimate": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   },
+   "ac1": {
+    "estimate": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   },
+   "pabak": {
+    "estimate": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   }
+  },
+  "swin_unetr": {
+   "n": 80,
+   "prev_v3": 0.15,
+   "prev_alt": 0.175,
+   "patients": 80,
+   "percent_agreement": {
+    "estimate": 0.975,
+    "lo": 0.9375,
+    "hi": 1.0
+   },
+   "kappa": {
+    "estimate": 0.908256880733945,
+    "lo": 0.748110831234257,
+    "hi": 1.0
+   },
+   "ac1": {
+    "estimate": 0.9656504937741521,
+    "lo": 0.9050445103857567,
+    "hi": 1.0
+   },
+   "pabak": {
+    "estimate": 0.95,
+    "lo": 0.875,
+    "hi": 1.0
+   }
+  }
+ }
+}

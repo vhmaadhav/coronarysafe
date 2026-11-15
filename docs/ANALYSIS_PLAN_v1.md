@@ -106,3 +106,95 @@ All criteria are reported whether met or not. Secondary LOSO results are reporte
   - Known caveat, stated before the test: M4 alone was uninformative on dev (domain gap), so the stack's dev gain over M1+M3 (2 units) is within noise. M1+M3 is reported as a pre-declared sensitivity analysis.
 - **Best pre-specified simple rule (chosen on dev from the Addendum-v1 list).** n_components ≥ 10 mm (dev NR 0.476, AUROC 0.782). Exploratory comparator, labelled as such: g_share_top2 (dev AUROC 0.838; not on the pre-specified list).
 - **Unchanged.** Test protocol, primary endpoint (FFR-UNet test, NR@20%), S1–S5 and the comparators. The test split is evaluated ONCE with these files.
+
+## Addendum I (2026-11-15, after the sealed test; secondary/exploratory): label robustness to a second annotator
+- **Purpose.** Validate the v3 failure labels without a clinician by recomputing them against an INDEPENDENT reference: the original ImageCAS lumen masks (a different annotation team from ImageCAS-X).
+- **Method.** For each unit (segmenter × scan; val and test), segment names are transferred onto the original ImageCAS mask by nearest-label mapping from the ImageCAS-X 14-class mask (within 3 mm; unmapped voxels are left unlabelled). The same frozen taxonomy_v3 code is run with the original mask as GT, with centerlines derived from its skeleton (the code's fallback). Outputs: critical_alt, severe_alt and burden_alt.
+- **Reported.** Agreement critical vs critical_alt: percent agreement, Cohen's kappa, Gwet's AC1 and prevalence-adjusted bias-adjusted kappa (PABAK), with patient-bootstrap CIs. The frozen model's and the rule's NR@20%, AUROC and paired difference re-scored against critical_alt, per segmenter. The frozen model, features and thresholds are unchanged; this is a robustness analysis, not a new test of S1–S3.
+
+- **Outcome (val only, 2026-11-15; no test run).** The original ImageCAS masks are not a second annotation of the same lumen. On 6 checked val cases they share the grid and affine (no orientation error), have 2–6× the voxels of ImageCAS-X, and contain 80–99% of each ImageCAS-X mask; Dice is 0.29–0.56 (median 0.43 over all val). Full-v3 alt prevalence was 0.93 vs 0.13 (kappa 0.02). A restricted variant (F1/F2 on LM/LAD/LCx/RCA within 50 mm only) still gave 0.91 vs 0.13 (kappa 0.03). Centerline choice is not the cause (VTK vs skeleton on ImageCAS-X: 98.8% agreement, AC1 0.98). Conclusion: this reference cannot test label robustness. Addendum I is reported as a negative feasibility finding, and the test-split run is not performed.
+
+---
+
+## DRAFT — not frozen (2026-11-15): Addenda J and K
+
+Status: text only, written after the sealed test (S2 FAIL) and before any J or K run. Nothing here changes the frozen model, the rule, the primary endpoint or S1–S5. These addenda become binding only after a dated freeze.
+
+### Addendum J (DRAFT): frozen-model replication on additional segmenters, same 160 test patients
+
+- **Purpose.** Test whether the frozen model's gain over the rule holds for segmenters the model was not fitted on. The patients are the same 160 ImageCAS-X test scans, so this is robustness across segmenters, NOT independent-patient validation.
+- **Frozen, unchanged.** Model M1+M3+M4 (sha256 as in Addendum H), rule g_n_components ≥ 10 mm, NR@20% = recall@20% / oracle recall@20% (ties averaged), 32-unit budget, test IDs of filelist/test.txt.
+- **Segmenters and eligibility (fixed before outcomes are seen).**
+  - Excluded: CAS-Net, Swin UNETR (the model was fitted on their val units), FFR-UNet (primary), and nnunet_mv (a majority vote derived from the folds; counting it would double-count them).
+  - Family A, nnU-Net 3d_fullres 5-fold f0–f4. ONE correlated family. Eligible because the test scans are in imagesTs and never in nnU-Net training (audit, Addendum G: ImageCAS-X models/nnunet/data_prep.py, dbc7343). The five folds share training data and architecture, so they are treated as one family.
+  - Family B, ImageCAS cascade (stage 1 coarse, stage 2 dilated, stage 3 patch 16/32/64, released weights). Eligible ONLY IF documentation of the released training (configuration, run log or authors' statement) shows training on the ImageCAS-X train split (560 IDs) with no test ID. The checkpoints carry no split metadata. If that cannot be verified before the J freeze, Family B is excluded from the primary and reported only as a labelled sensitivity.
+- **Units.** For each family and each of the 160 test scans: a reconstruction, the v3 labels (frozen labeler, ImageCAS-X GT), and the frozen model and rule scores. Fold-level results are computed per fold, then averaged (below).
+- **Primary.** Per segmenter k, D_k = NR@20 of the frozen model minus NR@20 of the rule, on that segmenter's 160 units. For Family A, D_A = mean over folds f0–f4 of the per-fold D_f (the five folds count as one segmenter). Primary estimate Δ_J = equal-weight mean of D_k over the eligible families (D_A alone, or the mean of D_A and D_B if Family B is eligible).
+- **Uncertainty.** Patient-block bootstrap, 2000 resamples, seed 0. In each resample, draw the 160 patient IDs once with replacement; take every segmenter's outputs and labels for the drawn patients together; within each segmenter, rerank and recompute NR@20 for the model and the rule; compute D_k*; then Δ_J* = mean of the D_k*. The 95% CI is the 2.5th–97.5th percentile of Δ_J*. Duplicate draws are kept (they are part of the resample).
+- **Success (same bar as S2).** Δ_J ≥ +10 pp AND the CI lower bound > 0.
+- **Secondary.**
+  - Random-effects over families: REML τ², Hartung–Knapp interval with t(K−1) df, using the bootstrap covariance of the D_k*. With K < 3 families this is not estimable and is reported as descriptive only.
+  - AUROC difference (model − rule) per family, with the bootstrap interval.
+  - Raw counts per segmenter: P = critical units among 160, K = review budget (32), C = critical units among the K flagged; recall = C/P, precision = C/K, oracle recall = min(P, K)/P, NR = recall/oracle recall.
+  - g_share_top2: reported side by side as EXPLORATORY (not on the pre-specified comparator list; its dev AUROC was chosen after the freeze).
+- **Disclosure written before the run.** The nnunet_mv test result (model 0.600 vs rule 0.420 NR) has already been seen. The individual folds are strongly correlated with their majority vote, so a Family A pass is partly anticipated and is weak, non-independent evidence. Family B: the stage-1 coarse checkpoint is absent from the released weights folder and the training split is unverified, so Family B is EXCLUDED from J (decided before any outcome).
+- **Interpretation.** A pass means the frozen gain is not specific to FFR-UNet reconstructions on these 160 patients. A fail, or a pass with a family-level disagreement, is reported as such. The original S2 verdict (FAIL) stands regardless of any J result.
+
+### Addendum K (DRAFT): controlled acquisition-shift stress test
+
+- **Purpose.** Measure how the frozen model's gain over the rule responds to three controlled CT changes on the same 160 test patients. This is a robustness stress test, NOT external validation, and no result changes a frozen criterion.
+- **Perturbations (parameters fixed here).** Applied to the raw CT, then the segmenter is run on the perturbed CT.
+  1. Noise: add zero-mean Gaussian noise with SD σ_add = √(1.5² − 1)·σ0 = 1.118·σ0, so that the image noise SD rises by about 50%. σ0 is the per-scan SD in a fixed blood-pool ROI (aorta lumen from TotalSegmentator, central 50% of the cross-section, median over slices), computed on the unperturbed CT.
+  2. Blur: isotropic Gaussian blur with σ = 0.6 mm in physical units (σ_vox = 0.6 / spacing per axis).
+  3. Contrast: HU' = m + 0.75·(HU − m), where m is the median HU in the aorta lumen (TotalSegmentator aorta), per scan.
+- **Segmenter.** ONE real segmenter, the cheapest eligible one by the timing pilot in the budget below. Candidates: nnU-Net fold f0 (no new training) or CAS-Net. The choice is recorded in the run log before any perturbed-CT label is computed.
+- **Labels and scoring.** The frozen v3 labeler against ImageCAS-X GT (unperturbed GT, since the perturbation changes only the image). The frozen model and rule are scored on the perturbed reconstructions with unchanged features, thresholds and weights.
+- **Primary.** For each perturbation p, the paired NR@20 difference D_p = frozen model − rule, with a patient-block bootstrap (2000, seed 0) as in J. Reported per perturbation; no pooling.
+- **Pre-existing files.** Perturbed CT volumes in imagecas/volumes_shift/{noise,zblur,contrast} and segmentations preds/cas_net@noise (159 of 160) and preds/ffr_unet@noise (1 of 160) already exist from an earlier chain (2026-11-14/15). Their parameters are not recorded in this plan. Before any use they must be checked against the specification above; if they do not match, they are regenerated and the old files are kept as a labelled deviation. The existing outputs are not used in any selection.
+- **GPU and CPU budget (estimates; the timing pilot on VAL scans sets the final numbers).**
+  - Perturbation: CPU only, 3 × 160 volumes, a few minutes each on 8 workers.
+  - Segmentation: 480 CT inferences. Assumed 20–60 s GPU per case for the chosen segmenter, giving about 2.7–8 GPU-hours. Free VRAM at the check was about 165 GB of 192 GB, with one unrelated vLLM process holding about 40 GB, so memory is not the limit.
+  - Labelling: about 480 units at roughly 15 CPU-seconds each (the val run took about 300 s for 160 units with 8 workers), so about 15 wall-minutes on 8 workers.
+  - Family J (nnU-Net folds): existing test predictions and v3 labels are reused, so the GPU cost is zero if the qa/v3 fold files are complete on test. Family B (cascade): about 160 inferences, 0.5–3 GPU-hours (estimate, pending pilot), plus about 5 min of labelling.
+- **Integrity.** No K or J output feeds model selection, the rule or any threshold. Any perturbation that fails its specification is reported as a deviation, not corrected silently.
+
+## DRAFT — not frozen (2026-11-15): Addenda L and M
+
+Status: text only, written after the sealed test (S2 FAIL) and the Addendum I negative (original ImageCAS annotations are binary lumen; segment-level inter-annotator agreement is unrecoverable). Nothing here changes the frozen model, the rule, the primary endpoint or S1–S5. These addenda become binding only after a dated freeze and, for any TEST-side computation, an explicit user approval.
+
+### Addendum L (DRAFT): independent-lumen burden — feature-disjoint label-robustness analysis
+
+- **Purpose.** Both the frozen model's features and the v3 labels are derived from the predicted reconstruction through related geometric machinery (feature-side graph/ostium statistics vs the labeler's F1/F2/F3 run detection). Addendum I attempted the second-annotator defense and degenerated: the original ImageCAS lumen masks carry no segment labels, so `critical_alt` is near-uninformative (val: pooled %agree 0.229, Gwet AC1 −0.530, median mask Dice 0.427). L asks instead: does the frozen triage still rank severity when the label is an independent-lumen coverage burden built by pure voxel set operations, with no v3 labeler machinery?
+- **Frozen, unchanged.** Frozen model M1+M3+M4 (sha256 as in Addendum H), rule `g_n_components_ge_10mm`, NR@20%, patient-block bootstrap (2000, seed 0), frozen labeler + taxonomy_v3, image data, splits.
+- **Label (new; computed once, code frozen at freeze time).** Per unit (segmenter × scan):
+  - Gate G: ImageCAS-X GT voxels of the base major segments {1 LM, 2 LAD, 3 LCx, 9 RCA}, dilated by PAD = 2.0 mm (spacing-aware). PDA is excluded from the gate (dominance-dependent, and dominance assignment is part of the v3 machinery).
+  - orig_mj: original ImageCAS binary lumen voxels ∩ dilated G.
+  - pred_lumen: predicted voxels minus background (any of the 14 classes).
+  - **B_alt = 1 − |orig_mj ∩ pred_lumen| / |orig_mj|** — the fraction of independently annotated major-segment lumen the prediction does not cover (0 = perfect coverage).
+  - Sensitivity B_alt5: same with PAD = 5.0 mm.
+  - Exclusion: units with |orig_mj| < 50 voxels are excluded from B_alt statistics (counted, reported).
+- **Why this is disjoint (construction argument).** B_alt is computed from (i) the original ImageCAS lumen — a mask the frozen model never sees: the model is label-free at training and inference (inputs: predicted mask, CT, aorta from CT only; training used synthetic corruptions of the GT, never the original lumen) — and (ii) pure voxel set operations: no centerline runs, no F-class rules, no radius or ostium-distance thresholds, no segment identity beyond the GT gate. The v3 machinery can enter B_alt only through the ImageCAS-X gate, and that overlap is quantified by controls C1–C2 below.
+- **Units.** val: all val units with both original lumen and a frozen score. Phase 1 (already scoreable): 160 dev-scope units (cas_net, swin_unetr). Phase 2 (val-side score extension, dev scope, no sealed data): frozen-model scores computed for val × {ffr_unet, nnunet_f0..f4} by running the frozen M4 weights + frozen ostium features + frozen LR on these 480 units (CPU), giving 640 val units. test: FFR-UNet × 160 (primary endpoint population only), via ONE canonical sealed read of the frozen scores and of the per-unit qa/v3 label files; scores are never recomputed on test.
+- **Statistics.** Per segmenter and pooled:
+  1. Spearman ρ(frozen score, B_alt), patient-cluster bootstrap CI (2000, seed 0);
+  2. AUROC of the frozen score for high burden = {B_alt ≥ 0.10}, CI;
+  3. paired mean B_alt difference, flagged top-20% (frozen score) vs the rest, bootstrap CI.
+  Controls (reported, pre-specified):
+  - C1: Spearman(burden_v3, B_alt) and percent agreement(critical_v3, B_alt ≥ 0.10) — documents how much of the independent label is v3-adjacent (cheat-sheet view of the overlap);
+  - C2: residual correlation — regress B_alt on (burden_v3, critical_v3), take residual r; report Spearman(frozen score, r) with CI — the part of the score's burden association not explained by the v3 label machinery.
+- **Decision rule (pre-specified, descriptive; no pass/fail bar).** (i) ρ CI > 0 AND C2 CI > 0 → "transfer to the independent label source; the circularity concern is not supported." (ii) ρ CI > 0 AND C2 CI includes 0 → "transfer is mediated by v3-adjacent information." (iii) ρ CI ≤ 0 → "independent-label transfer fails; reported as a limitation." No re-run, no threshold change, no unit-set change after outcomes.
+- **Budget.** val Phase 1 + Phase 2: CPU-only (features exist in qa/v3; M4 inference ≈ 480 × 96³ ≈ 0.5–3 s CPU each). test: one canonical read + 160 voxel ops + bootstrap; CPU minutes.
+- **Interpretation.** L does not re-test S1–S3 and cannot change their verdicts. It bounds how far the frozen triage's ranking extends beyond the v3 label construction, using the only independent lumen source available.
+
+### Addendum M (DRAFT): S2 estimator diagnostics (re-analysis of sealed outputs only)
+
+- **Purpose.** S2 result: (frozen model − best simple rule) NR@20 = +12.5 pp, 95% CI [−0.3, +23.9] (paired patient-cluster bootstrap, percentile, 2000 resamples, seed 14, exactly as pre-registered). The verdict FAIL stands unchanged. M documents, on the already-sealed outputs, whether the verdict is an artifact of the estimator or robust, and states the intrinsic power limit. No new data, no new model, no threshold, no selection of any kind.
+- **Frozen, unchanged.** S2 definition, bar (+10 pp AND CI excludes 0), the frozen model, the rule, the labels, the split, the verdict FAIL.
+- **Reports (all on the sealed FFR-UNet test units, one canonical read):**
+  - m1: the identical frozen estimator at 20,000 resamples (Monte-Carlo stability of the −0.3 boundary);
+  - m2: BCa and t-approximate CIs of the same statistic (percentile vs BCa vs t);
+  - m3: one-sided 97.5% lower bound and one-sided p of (model − rule);
+  - m4: complementary lower-variance contrasts on the same units: AURC difference (model − rule) and Spearman rank difference of the two scores, each with paired patient bootstrap CI;
+  - m5: nonparametric power: simulate the paired difference under the observed per-patient critical incidence pattern; report the achievable two-sided 95% CI half-width and the power at the observed effect size, as a function of review budget (10/20/30/50%).
+- **Interpretation.** No m* output can change the S2 verdict. M's role is disclosure: show all estimators agree on direction and near-zero bound (robust near-miss) or expose an estimator artifact (Monte-Carlo or distributional), and fix the sample-size math for the discussion section.
+- **Budget.** CPU seconds-to-minutes; one canonical sealed read.

@@ -32,7 +32,7 @@ from scipy.spatial import cKDTree
 from ..geometry import bbox_slices, dist_to
 from ..graph import branch_graph, skeletonize, voxel_graph
 
-DEFAULT_CONFIG = Path(__file__).resolve().parents[3] / "configs" / "taxonomy_v1.yaml"
+DEFAULT_CONFIG = Path(__file__).resolve().parents[3] / "configs" / "archive" / "taxonomy_v1.yaml"
 _TREE_NAMES = {0: "none", 1: "left", 2: "right"}
 _EPS = 1e-9
 

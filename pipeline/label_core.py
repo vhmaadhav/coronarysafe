@@ -1,6 +1,6 @@
 """Shared labelling core for the CoronarySafe QA study (CPU only).
 
-Used by modal/label_features.py (Modal) and droplet/run_labels.py (droplet CPU pool).
+Used by infra/modal/label_features.py (Modal) and infra/droplet/run_labels.py (droplet CPU pool).
 Nothing here
 assumes a host: the data root is passed in. Runs the coronarysafe package (src/) on predictions
 and writes

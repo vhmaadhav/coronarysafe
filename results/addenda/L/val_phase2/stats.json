@@ -1,0 +1,371 @@
+{
+ "pooled": {
+  "n": 640,
+  "n_patients": 80,
+  "n_critical_v3": 87,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6493014061500189,
+  "spearman_score_balt": {
+   "estimate": 0.22239404169674287,
+   "lo": 0.05347161898898795,
+   "hi": 0.39132436476795124
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 640
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.030676480595881905,
+   "lo": 0.0016783578214844654,
+   "hi": 0.06304224533213285,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": 0.0253770681292326,
+   "lo": -0.14644653545929445,
+   "hi": 0.1988988429021333
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.1359375,
+   "lo": 0.08125,
+   "hi": 0.2015625
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.16679754352882573,
+   "lo": 0.018179656218949528,
+   "hi": 0.3200057953840528
+  },
+  "decision_branch": "(i)",
+  "verdict": "(i) transfer to the independent label source; circularity concern not supported"
+ },
+ "cas_net": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 9,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6460365022930157,
+  "spearman_score_balt": {
+   "estimate": 0.22782466010314115,
+   "lo": 0.012402984739809128,
+   "hi": 0.43990325400043473
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.036812396244558565,
+   "lo": -0.0027923427017383607,
+   "hi": 0.07221398503523298,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": 0.001371426519716629,
+   "lo": -0.2333171060459708,
+   "hi": 0.23685810827319984
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.1125,
+   "lo": 0.05,
+   "hi": 0.1875
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.17325363338021565,
+   "lo": -0.024670729243895073,
+   "hi": 0.3719457788029014
+  },
+  "decision_branch": "(ii)",
+  "verdict": "(ii) transfer present but mediated / v3-adjacent information"
+ },
+ "ffr_unet": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 18,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6476636844841804,
+  "spearman_score_balt": {
+   "estimate": 0.21511954992967652,
+   "lo": 0.0011576294820885389,
+   "hi": 0.43153742699065506
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.014602430176352321,
+   "lo": -0.012362061905655135,
+   "hi": 0.06480318416795733,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": -0.05253798323725361,
+   "lo": -0.28631778716567063,
+   "hi": 0.20460692709508016
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.225,
+   "lo": 0.1375,
+   "hi": 0.325
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.1643928738865448,
+   "lo": 0.000850758457772991,
+   "hi": 0.343853886549235
+  },
+  "decision_branch": "(i)",
+  "verdict": "(i) transfer to the independent label source; circularity concern not supported"
+ },
+ "nnunet_f0": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 10,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6509639710533734,
+  "spearman_score_balt": {
+   "estimate": 0.2246835443037975,
+   "lo": -0.005190222724679973,
+   "hi": 0.42212568026864955
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.024029171503817226,
+   "lo": -0.01505032484495226,
+   "hi": 0.06830144585677132,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": 0.03993618329799293,
+   "lo": -0.18163190242548988,
+   "hi": 0.2594189458009641
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.125,
+   "lo": 0.0625,
+   "hi": 0.2
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.1503047351148617,
+   "lo": -0.06282755861459707,
+   "hi": 0.34757903179162647
+  },
+  "decision_branch": "(iii)",
+  "verdict": "(iii) transfer not shown; reported as a limitation"
+ },
+ "nnunet_f1": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 8,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6516442008594738,
+  "spearman_score_balt": {
+   "estimate": 0.24669479606188469,
+   "lo": 0.01930205404075132,
+   "hi": 0.4481991737969538
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.03457677406333037,
+   "lo": -0.004890929702889162,
+   "hi": 0.07647591518436955,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": 0.04902621449855826,
+   "lo": -0.17030015812282812,
+   "hi": 0.2659439256918434
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.1,
+   "lo": 0.0375,
+   "hi": 0.175
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.1982653539615565,
+   "lo": -0.015326169979702613,
+   "hi": 0.39327471265783176
+  },
+  "decision_branch": "(ii)",
+  "verdict": "(ii) transfer present but mediated / v3-adjacent information"
+ },
+ "nnunet_f2": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 11,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6454670739054214,
+  "spearman_score_balt": {
+   "estimate": 0.22168307548054383,
+   "lo": 0.008263845004513288,
+   "hi": 0.41752045459557713
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.032343985190395275,
+   "lo": -0.0075069925082895585,
+   "hi": 0.06987614639196081,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": -0.0223022621295245,
+   "lo": -0.24581661064173654,
+   "hi": 0.2011251377992049
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.1375,
+   "lo": 0.0625,
+   "hi": 0.225
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.15487576183778715,
+   "lo": -0.04599076074115136,
+   "hi": 0.3617305867868471
+  },
+  "decision_branch": "(ii)",
+  "verdict": "(ii) transfer present but mediated / v3-adjacent information"
+ },
+ "nnunet_f3": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 11,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6557496023766832,
+  "spearman_score_balt": {
+   "estimate": 0.16296296296296298,
+   "lo": -0.053107320063408715,
+   "hi": 0.3693475574874809
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.01738318849644338,
+   "lo": -0.02143312660914019,
+   "hi": 0.06076129185778347,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": -0.01974436067959901,
+   "lo": -0.2434546681949012,
+   "hi": 0.20287967952959995
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.1375,
+   "lo": 0.0625,
+   "hi": 0.225
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.15171120487576184,
+   "lo": -0.057559034441683955,
+   "hi": 0.34135488333676345
+  },
+  "decision_branch": "(iii)",
+  "verdict": "(iii) transfer not shown; reported as a limitation"
+ },
+ "nnunet_f4": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 8,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6593073936020106,
+  "spearman_score_balt": {
+   "estimate": 0.3093061415846226,
+   "lo": 0.08405340837154694,
+   "hi": 0.5111659758810478
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.034224450724426925,
+   "lo": 0.007167614584277592,
+   "hi": 0.07735007572765842,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": 0.15695570871747408,
+   "lo": -0.061064353570815466,
+   "hi": 0.3591045191023816
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.1,
+   "lo": 0.0375,
+   "hi": 0.175
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.24580403187998126,
+   "lo": 0.037448121258413826,
+   "hi": 0.4398021399905054
+  },
+  "decision_branch": "(i)",
+  "verdict": "(i) transfer to the independent label source; circularity concern not supported"
+ },
+ "swin_unetr": {
+  "n": 80,
+  "n_patients": 80,
+  "n_critical_v3": 12,
+  "prev_high_balt": 1.0,
+  "mean_balt": 0.6375788206259916,
+  "spearman_score_balt": {
+   "estimate": 0.18366150961087674,
+   "lo": -0.050558274252975904,
+   "hi": 0.4125992840842776
+  },
+  "auroc_score_high_balt": {
+   "estimate": NaN,
+   "lo": NaN,
+   "hi": NaN,
+   "n_pos": 80
+  },
+  "flagged_top20_minus_rest_balt": {
+   "estimate": 0.03622369932799141,
+   "lo": 0.0020214703935838184,
+   "hi": 0.08033978924683237,
+   "flag_fraction": 0.2
+  },
+  "c1_spearman_burdenv3_balt": {
+   "estimate": 0.06995800914381588,
+   "lo": -0.16111557395899012,
+   "hi": 0.29647335217789084
+  },
+  "c1_agreement_critv3_highbalt": {
+   "estimate": 0.15,
+   "lo": 0.075,
+   "hi": 0.2375
+  },
+  "c2_spearman_score_resid": {
+   "estimate": 0.11251758087201125,
+   "lo": -0.11675721350732006,
+   "hi": 0.32947246658318147
+  },
+  "decision_branch": "(iii)",
+  "verdict": "(iii) transfer not shown; reported as a limitation"
+ }
+}

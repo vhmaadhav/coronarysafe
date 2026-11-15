@@ -1,5 +1,5 @@
 """Post-freeze descriptive analyses on the sealed-evaluation outputs. Descriptive only: no refitting,
-no ranker selection, no new thresholds. Run on the droplet (see droplet/run_posthoc.sh).
+no ranker selection, no new thresholds. Run on the droplet (see infra/droplet/run_posthoc.sh).
 
 Inputs (--in DIR): features.csv (per unit: critical, dice, burden, severe, g_* features),
 flags.csv (frozen score, flagged_top20), optional ensemble_comparators.csv. Also read:

@@ -1,0 +1,306 @@
+{
+ "split": "test",
+ "code_version": "sealed-read2-v1",
+ "units_note": "test, 160 sealed scans; K perturbations scored by the frozen pipeline",
+ "n_scans": 160,
+ "manifest_sha256": "2336500898ba4bf5d6c4f473f3bf30324f368e5a111506b4f08070cc0aa90814",
+ "frozen_sha256": {
+  "frozen_model.json": "56a666ef39ed652b85e65fafb18101841dc8963cecff4b27df5ef18de0f7aa5d",
+  "m4_model.pt": "baf841cfba4d0f08b21cbead0239e930d1f8db19a744720733b94afbfb30a266",
+  "lr_convention.json": "53ea24bfdfc8978c6ec02b979789bda1a068dad527457cc1fad7b0d182a3f6db"
+ },
+ "K": {
+  "noise": {
+   "method": "cas_net@K_noise",
+   "label": "sealed K perturbation",
+   "expected_units": 160,
+   "scored_labelled_units": 160,
+   "missing_or_failed_units": 0,
+   "missing_or_failed_breakdown": {},
+   "min_labelled": 150,
+   "status": "COMPLETE",
+   "P": 35,
+   "K": 32,
+   "C_model": 20.0,
+   "C_rule": 16.200000000000003,
+   "precision_model": 0.625,
+   "precision_rule": 0.5062500000000001,
+   "recall_model": 0.5714285714285714,
+   "recall_rule": 0.4628571428571429,
+   "NR_model": 0.625,
+   "NR_rule": 0.50625,
+   "D": 0.11875000000000002,
+   "D_ci95_percentile": [
+    -0.02342545245234521,
+    0.2750341796874998
+   ],
+   "D_bootstrap_nan_draws": 0,
+   "AUROC_model": 0.7787428571428572,
+   "AUROC_rule": 0.7886857142857142,
+   "bootstrap": {
+    "resamples": 2000,
+    "seed": 0,
+    "cluster": "patient (scan_id)"
+   }
+  },
+  "contrast": {
+   "method": "cas_net@K_contrast",
+   "label": "sealed K perturbation",
+   "expected_units": 160,
+   "scored_labelled_units": 160,
+   "missing_or_failed_units": 0,
+   "missing_or_failed_breakdown": {},
+   "min_labelled": 150,
+   "status": "COMPLETE",
+   "P": 46,
+   "K": 32,
+   "C_model": 25.0,
+   "C_rule": 22.5,
+   "precision_model": 0.78125,
+   "precision_rule": 0.703125,
+   "recall_model": 0.5434782608695652,
+   "recall_rule": 0.4891304347826087,
+   "NR_model": 0.78125,
+   "NR_rule": 0.703125,
+   "D": 0.078125,
+   "D_ci95_percentile": [
+    -0.07924321771978007,
+    0.19471507352941173
+   ],
+   "D_bootstrap_nan_draws": 0,
+   "AUROC_model": 0.7953852021357742,
+   "AUROC_rule": 0.7778413424866514,
+   "bootstrap": {
+    "resamples": 2000,
+    "seed": 0,
+    "cluster": "patient (scan_id)"
+   }
+  },
+  "blur": {
+   "method": "cas_net@K_blur",
+   "label": "sealed K perturbation",
+   "expected_units": 160,
+   "scored_labelled_units": 160,
+   "missing_or_failed_units": 0,
+   "missing_or_failed_breakdown": {},
+   "min_labelled": 150,
+   "status": "COMPLETE",
+   "P": 38,
+   "K": 32,
+   "C_model": 18.0,
+   "C_rule": 17.35483870967742,
+   "precision_model": 0.5625,
+   "precision_rule": 0.5423387096774194,
+   "recall_model": 0.47368421052631576,
+   "recall_rule": 0.45670628183361633,
+   "NR_model": 0.5625,
+   "NR_rule": 0.5423387096774194,
+   "D": 0.020161290322580627,
+   "D_ci95_percentile": [
+    -0.13541666666666663,
+    0.13069221175166276
+   ],
+   "D_bootstrap_nan_draws": 0,
+   "AUROC_model": 0.7189387402933564,
+   "AUROC_rule": 0.7183994823123382,
+   "bootstrap": {
+    "resamples": 2000,
+    "seed": 0,
+    "cluster": "patient (scan_id)"
+   }
+  }
+ },
+ "L": {
+  "n_requested": 480,
+  "n_ok": 480,
+  "n_excluded_low_support": 0,
+  "n_errors": 0,
+  "stats": {
+   "pooled": {
+    "n": 480,
+    "n_patients": 160,
+    "n_critical_v3": 143,
+    "prev_high_balt": 1.0,
+    "mean_balt": 0.6562651762313819,
+    "spearman_score_balt": {
+     "estimate": 0.25835691561161284,
+     "lo": 0.13107960902344945,
+     "hi": 0.37068667054880805
+    },
+    "auroc_score_high_balt": {
+     "estimate": NaN,
+     "lo": NaN,
+     "hi": NaN,
+     "n_pos": 480
+    },
+    "flagged_top20_minus_rest_balt": {
+     "estimate": 0.04654018326959941,
+     "lo": 0.02527691298917884,
+     "hi": 0.06473275554249855,
+     "flag_fraction": 0.2
+    },
+    "c1_spearman_burdenv3_balt": {
+     "estimate": 0.1823660850081733,
+     "lo": 0.06009930415741675,
+     "hi": 0.3101015182599975
+    },
+    "c1_agreement_critv3_highbalt": {
+     "estimate": 0.29791666666666666,
+     "lo": 0.2375,
+     "hi": 0.35833333333333334
+    },
+    "c2_spearman_score_resid": {
+     "estimate": 0.1259016966219471,
+     "lo": 0.02894423056552545,
+     "hi": 0.21493416856290082
+    },
+    "decision_branch": "(i)",
+    "verdict": "(i) transfer to the independent label source; circularity concern not supported"
+   },
+   "cas_net": {
+    "n": 160,
+    "n_patients": 160,
+    "n_critical_v3": 34,
+    "prev_high_balt": 1.0,
+    "mean_balt": 0.6581940191970297,
+    "spearman_score_balt": {
+     "estimate": 0.1529796085784601,
+     "lo": -0.019737281437607238,
+     "hi": 0.3093182614557089
+    },
+    "auroc_score_high_balt": {
+     "estimate": NaN,
+     "lo": NaN,
+     "hi": NaN,
+     "n_pos": 160
+    },
+    "flagged_top20_minus_rest_balt": {
+     "estimate": 0.017760211717081198,
+     "lo": -0.004476115790728184,
+     "hi": 0.04683053960571105,
+     "flag_fraction": 0.2
+    },
+    "c1_spearman_burdenv3_balt": {
+     "estimate": 0.11869611199875925,
+     "lo": -0.038375400703260294,
+     "hi": 0.27114739647519487
+    },
+    "c1_agreement_critv3_highbalt": {
+     "estimate": 0.2125,
+     "lo": 0.15,
+     "hi": 0.275
+    },
+    "c2_spearman_score_resid": {
+     "estimate": 0.07295792804406423,
+     "lo": -0.07832766072792252,
+     "hi": 0.21039515798599398
+    },
+    "decision_branch": "(iii)",
+    "verdict": "(iii) transfer not shown; reported as a limitation"
+   },
+   "ffr_unet": {
+    "n": 160,
+    "n_patients": 160,
+    "n_critical_v3": 64,
+    "prev_high_balt": 1.0,
+    "mean_balt": 0.6608351075632399,
+    "spearman_score_balt": {
+     "estimate": 0.39387378413219265,
+     "lo": 0.24263814424856003,
+     "hi": 0.5235440063339799
+    },
+    "auroc_score_high_balt": {
+     "estimate": NaN,
+     "lo": NaN,
+     "hi": NaN,
+     "n_pos": 160
+    },
+    "flagged_top20_minus_rest_balt": {
+     "estimate": 0.04534841047793714,
+     "lo": 0.023553123156388366,
+     "hi": 0.07150792255665996,
+     "flag_fraction": 0.2
+    },
+    "c1_spearman_burdenv3_balt": {
+     "estimate": 0.25561302188102936,
+     "lo": 0.1058757387336284,
+     "hi": 0.4042275756127273
+    },
+    "c1_agreement_critv3_highbalt": {
+     "estimate": 0.4,
+     "lo": 0.325,
+     "hi": 0.4751562499999991
+    },
+    "c2_spearman_score_resid": {
+     "estimate": 0.2221200046876831,
+     "lo": 0.1031494656729741,
+     "hi": 0.3263160472479452
+    },
+    "decision_branch": "(i)",
+    "verdict": "(i) transfer to the independent label source; circularity concern not supported"
+   },
+   "swin_unetr": {
+    "n": 160,
+    "n_patients": 160,
+    "n_critical_v3": 45,
+    "prev_high_balt": 1.0,
+    "mean_balt": 0.6497664019338762,
+    "spearman_score_balt": {
+     "estimate": 0.24046935427165125,
+     "lo": 0.08162460677006675,
+     "hi": 0.3869871049699201
+    },
+    "auroc_score_high_balt": {
+     "estimate": NaN,
+     "lo": NaN,
+     "hi": NaN,
+     "n_pos": 160
+    },
+    "flagged_top20_minus_rest_balt": {
+     "estimate": 0.0328122904165159,
+     "lo": 0.010666464853087495,
+     "hi": 0.061201223288078775,
+     "flag_fraction": 0.2
+    },
+    "c1_spearman_burdenv3_balt": {
+     "estimate": 0.15111320887634505,
+     "lo": 0.006485848024832857,
+     "hi": 0.29954270323876053
+    },
+    "c1_agreement_critv3_highbalt": {
+     "estimate": 0.28125,
+     "lo": 0.2125,
+     "hi": 0.35
+    },
+    "c2_spearman_score_resid": {
+     "estimate": 0.11881811789523028,
+     "lo": -0.020236809259705026,
+     "hi": 0.24477502098245163
+    },
+    "decision_branch": "(ii)",
+    "verdict": "(ii) transfer present but mediated / v3-adjacent information"
+   }
+  }
+ },
+ "excluded": {},
+ "hashes": {
+  "scores_L_csv_sha256": "f12a84a7f1ffc6b090481f94a3fbdee3ad9fb4b3d8ed785656c7b960b0ac1466"
+ },
+ "reference_unperturbed": {
+  "source": "/root/data/test_eval/RESULTS.md",
+  "source_sha256": "6be245bcf45efc000b9624860cd08e095b8b99124b7ae8130c130323159c864a",
+  "cas_net_lines": [
+   "| cas_net | 0.625 | 0.523 | 0.813 | 0.212 |",
+   "| cas_net | 0.594 | 0.523 |"
+  ]
+ },
+ "assumptions": [
+  "Part L label and statistics are burden_indep.score_unit and burden_indep.stats_block, unchanged; B_alt is not reimplemented.",
+  "L scores: test cas_net/swin_unetr/ffr_unet read from test_eval features/flags (flags.csv score); a method without sealed rows is computed once by the frozen pipeline (hash logged).",
+  "K scores: frozen pipeline (sealed_read1.compute_units) on preds/cas_net@K_<p> with qa/v3 labels; the rule is qa graph n_components_ge_10mm.",
+  "K D_p and L use patient-block (scan_id) bootstrap, 2,000 resamples, seed 0; no pooling across K perturbations.",
+  "Perturbations with fewer than 150 labelled units are INCOMPLETE and carry their count.",
+  "Missing or failed units are excluded and counted per method; they are never imputed."
+ ],
+ "runtime_s_before_results": 1767.9
+}

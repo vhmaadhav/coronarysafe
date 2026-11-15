@@ -1,0 +1,97 @@
+{
+  "split": "val",
+  "methods": [
+    "cas_net",
+    "swin_unetr"
+  ],
+  "n_units_ok": 160,
+  "n_units_not_ok": 0,
+  "agreement": {
+    "per_segmenter": {
+      "cas_net": {
+        "n": 80,
+        "prev_v3": 0.1125,
+        "prev_alt": 0.9375,
+        "patients": 80,
+        "percent_agreement": {
+          "estimate": 0.175,
+          "lo": 0.1,
+          "hi": 0.2625
+        },
+        "kappa": {
+          "estimate": 0.01675977653631282,
+          "lo": 0.002695417789757385,
+          "hi": 0.04220779220779224
+        },
+        "ac1": {
+          "estimate": -0.6458852867830424,
+          "lo": -0.8,
+          "hi": -0.4552692014428528
+        },
+        "pabak": {
+          "estimate": -0.65,
+          "lo": -0.8,
+          "hi": -0.475
+        }
+      },
+      "swin_unetr": {
+        "n": 80,
+        "prev_v3": 0.15,
+        "prev_alt": 0.925,
+        "patients": 80,
+        "percent_agreement": {
+          "estimate": 0.225,
+          "lo": 0.1375,
+          "hi": 0.325
+        },
+        "kappa": {
+          "estimate": 0.028213166144200684,
+          "lo": 0.007299270072992675,
+          "hi": 0.06143344709897609
+        },
+        "ac1": {
+          "estimate": -0.5413300186451212,
+          "lo": -0.722577625214542,
+          "hi": -0.3366336633663366
+        },
+        "pabak": {
+          "estimate": -0.55,
+          "lo": -0.725,
+          "hi": -0.35
+        }
+      }
+    },
+    "pooled": {
+      "n": 160,
+      "prev_v3": 0.13125,
+      "prev_alt": 0.93125,
+      "patients": 80,
+      "percent_agreement": {
+        "estimate": 0.2,
+        "lo": 0.125,
+        "hi": 0.2875
+      },
+      "kappa": {
+        "estimate": 0.022060930188138688,
+        "lo": 0.006077841941166354,
+        "hi": 0.049193881769326216
+      },
+      "ac1": {
+        "estimate": -0.5937743190661479,
+        "lo": -0.7497266052179349,
+        "hi": -0.4141727399596836
+      },
+      "pabak": {
+        "estimate": -0.6,
+        "lo": -0.75,
+        "hi": -0.42500000000000004
+      }
+    }
+  },
+  "rescore_against_critical_alt": null,
+  "taxonomy_config": "/root/coronarysafe-li/configs/taxonomy_v3.yaml",
+  "max_mm": 3.0,
+  "other_label": 14,
+  "n_boot": 2000,
+  "seed": 0
+}
