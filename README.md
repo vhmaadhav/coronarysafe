@@ -127,12 +127,24 @@ python -m pytest -q
 
 ## Paper
 
-Preprint: link to be added.
+**Simple topology does most of the work: a pre-registered evaluation of label-free triage for critical
+failures in coronary CTA segmentation.** Maadhav V H, 2026.
+PDF: [`paper/main.pdf`](paper/main.pdf) (LaTeX source in [`paper/`](paper/)). An arXiv link will be added
+here once it is available.
 
 ## Citation
 
-Citation details to be added on publication.
+```bibtex
+@misc{vh2026coronarysafe,
+  title  = {Simple topology does most of the work: a pre-registered evaluation of label-free triage
+            for critical failures in coronary {CTA} segmentation},
+  author = {V H, Maadhav},
+  year   = {2026},
+  howpublished = {\url{https://github.com/vhmaadhav/coronarysafe}}
+}
+```
 
 ## Licence
 
-To be decided. No licence is granted until one is chosen.
+Code: [MIT](LICENSE). The licence covers this repository's code and documents only. ImageCAS and
+ImageCAS-X images, labels and model weights are not included and remain under their own terms.
