@@ -24,7 +24,7 @@ Create the droplet in the AMD console: MI300X x1, scratch disk attached. Choose 
 ## 1. Copy the code and the Kaggle token (laptop)
 
 ```bash
-cd /home/maadhav/Documents/Development/coronarysafe
+cd /path/to/coronarysafe
 rsync -az -e "ssh -i ~/.ssh/amd_devcloud" --exclude .venv --exclude outputs --exclude data \
   --exclude __pycache__ --exclude '*.egg-info' ./ root@<ip>:/root/coronarysafe/
 ssh -i ~/.ssh/amd_devcloud root@<ip> 'mkdir -p /root/.kaggle'
@@ -131,7 +131,7 @@ boot disk. If the boot disk is wiped, the clock restarts: check the AMD console 
 ## 8. Fetch the results (laptop), then destroy
 
 ```bash
-cd /home/maadhav/Documents/Development/coronarysafe
+cd /path/to/coronarysafe
 bash infra/droplet/fetch.sh <ip>                 # add --with-probs only if you need the probability maps
 ```
 

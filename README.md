@@ -25,7 +25,8 @@ Post-test addenda (exploratory or secondary; none changes S1 to S3, and S2 remai
 - **K, acquisition-shift stress test (CAS-Net on perturbed test CTs).** Model edge over the rule:
   noise +0.119 [-0.023, +0.275]; contrast (x0.75) +0.078 [-0.079, +0.195]; blur (0.6 mm) +0.020
   [-0.135, +0.131]. The edge is preserved under noise, shrinks under contrast and vanishes under blur.
-  The learned component is fragile to acquisition shift.
+  All model inputs are mask-derived, so this reflects a shift in the segmenter's failure profile: the
+  learned combination's edge over a single topology rule is not robust to acquisition shift.
 - **L, independent-lumen burden.** Pooled Spearman correlation between score and the independent burden
   0.26 [0.13, 0.37]; top-20% minus rest +0.047 [0.025, 0.065]. The burden is dominated by a reference
   thickness mismatch, so the pre-specified AUROC is not estimable. Treat as weak support against pure
