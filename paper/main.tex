@@ -6,42 +6,49 @@
 \usepackage{microtype}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[hidelinks]{hyperref}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
+\usepackage[title]{appendix}
 
 \newcommand{\NR}{\mathrm{NR}_{20}}
 \newcommand{\pp}{\,pp}
+\definecolor{accent}{HTML}{B91C1C}
+\definecolor{boxbg}{HTML}{F5F5F4}
 
 \title{\textbf{Simple topology does most of the work:\\ a pre-registered evaluation of label-free triage for critical failures in coronary CTA segmentation}}
 \author{Maadhav V H\\[2pt]
-\small KPR Institute of Engineering and Technology, Coimbatore, India}
+\small KPR Institute of Engineering and Technology, Coimbatore, India\\
+\small \url{https://github.com/vhmaadhav/coronarysafe}}
 \date{November 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Automated coronary artery segmentation from CT angiography (CCTA) can fail in ways that matter clinically, such as a missed proximal vessel, a broken trunk or a leak into a vein, while still achieving high Dice. We study \emph{label-free review triage}: ranking reconstructions so that a fixed review budget of 20\% of scans catches as many anatomically critical failures as possible, without ground truth at deployment. We defined a reference-based taxonomy of critical failures, pre-registered an analysis plan with success criteria, selected a single model on development data (a stacked logistic model over mask-derived graph, ostium and shape-plausibility features), and evaluated it once on a sealed test set of 160 patients (ImageCAS-X) segmented by a held-out segmenter. The frozen model reached a normalised recall of 0.906 at the 20\% budget (pass), catching 29 of 64 critical reconstructions with precision 0.91, and met the pre-registered comparison with ensemble-agreement quality control. Its advantage over the best pre-specified single-feature rule was +12.5\pp\ (95\% CI $-0.3$ to $+23.9$), missing the pre-registered superiority criterion. In pre-registered follow-up analyses, the advantage replicated across five nnU-Net folds (+11.4\pp, 95\% CI $+3.0$ to $+20.7$; same patients), but shrank or vanished when the input CTs were degraded, and an exploratory fragmentation feature matched the model. We conclude that simple, anatomy-aware topology features capture most of the achievable triage value; a learned combination adds a small, directionally consistent but fragile increment. We report all criteria, negative findings (synthetic-corruption learning, second-annotator relabelling, reduced-order FFR) and the full pre-registration trail.
+Automated coronary artery segmentation from CT angiography (CCTA) can fail in ways that matter clinically, such as a missed proximal vessel, a broken trunk or a leak into a vein, while still reaching a high Dice score. We study \emph{label-free review triage}: ranking reconstructions without ground truth so that reviewing a fixed 20\% of scans catches as many anatomically critical failures as possible. We define a reference-based taxonomy of critical failures, pre-register an analysis plan with explicit success criteria, select one model on development data (a regularised logistic model over mask-derived graph, ostium and shape-plausibility features) and evaluate it once on a sealed test set of 160 patients (ImageCAS-X), segmented by a model it never saw. The frozen model reached a normalised recall of 0.906 at the 20\% budget, catching 29 of the 32 critical failures that were catchable at that budget (29 of 64 in total) with precision 0.91. It met the pre-registered comparison with ensemble-agreement quality control. Its gain over the best pre-specified single-feature rule was $+12.5$\pp\ (95\% CI $-0.3$ to $+23.9$), narrowly missing the pre-registered superiority criterion. In pre-registered follow-up analyses, the gain replicated across five nnU-Net folds ($+11.4$\pp, 95\% CI $+3.0$ to $+20.7$; same patients), shrank or vanished when the input CTs were degraded, and was matched by an exploratory fragmentation feature. Simple, anatomy-aware topology features capture most of the achievable triage value; a learned combination adds a small, directionally consistent but fragile increment. We report every criterion, three negative findings and the full pre-registration trail, and release the code.
 \end{abstract}
 
 \section{Introduction}
-Coronary CCTA segmentation is the first step of many downstream analyses: stenosis grading, plaque quantification and simulated fractional flow reserve. Segmentation models are usually evaluated with volumetric overlap, but overlap is a poor proxy for the failures that change clinical conclusions. A reconstruction can reach Dice $\geq 0.90$ while losing a proximal segment of the left anterior descending artery or bridging the left and right trees (Fig.~\ref{fig:dice}). In deployment there is no ground truth, so such failures must be found by a reviewer, and review time is limited.
+Coronary CCTA segmentation is the first step of many downstream analyses: stenosis grading, plaque quantification and simulated fractional flow reserve (FFR). Segmentation models are usually evaluated by volumetric overlap, but overlap is a poor proxy for the errors that change clinical conclusions. A reconstruction can reach Dice $\geq 0.90$ while losing a proximal segment of the left anterior descending artery or bridging the left and right coronary trees (Fig.~\ref{fig:dice}). In deployment there is no reference mask, so such failures must be found by a reviewer, and review time is limited.
 
-We frame quality control as \emph{fixed-budget triage}: given a batch of reconstructions, rank them so that reviewing the top 20\% catches as many \emph{critical} failures as possible. Prior work on segmentation failure detection has benchmarked uncertainty and agreement-based scores across organs \citep{zenk2025failure,kahl2024values} and predicted segmentation quality without ground truth \citep{valindria2017rca,robinson2019qc}. Zenk et al.\ found that simple pairwise agreement within an ensemble is a strong baseline \citep{zenk2025failure}. Coronary trees add a specific difficulty: what matters is connectivity and calibre of a few major vessels, not global overlap \citep{hampe2024gnn}.
+We therefore frame quality control as \emph{fixed-budget triage}: given a batch of reconstructions, rank them so that reviewing the top 20\% catches as many \emph{critical} failures as possible. This differs from the usual formulations of segmentation quality estimation in two ways. The target is a small set of anatomically defined failures rather than a continuous overlap score, and the evaluation is the fraction of those failures caught at a fixed workload rather than a correlation.
 
-Our contributions are:
+The study makes three contributions.
 \begin{enumerate}
-\item A reference-based, physically specified taxonomy of \emph{critical} coronary segmentation failures, and a fixed-budget triage protocol with oracle-normalised recall.
-\item A pre-registered, sealed evaluation of a label-free triage model on a segmenter it never saw, with pre-specified success criteria reported whether met or not.
-\item Pre-registered follow-up analyses: replication across nnU-Net folds, an acquisition-shift stress test, an independent-reference burden analysis and estimator diagnostics. We also report negative findings.
+\item \textbf{A task and endpoint.} A reference-based, physically specified taxonomy of critical coronary segmentation failures, and a fixed-budget triage endpoint, oracle-normalised recall at 20\%, that stays interpretable across segmenters with different failure rates.
+\item \textbf{A sealed, pre-registered evaluation.} One model, frozen with hashes on development data, evaluated once on 160 test patients segmented by a held-out model, against pre-specified success criteria that are reported whether met or not.
+\item \textbf{Robustness analyses and negative results.} Pre-registered follow-ups (replication across nnU-Net folds, an acquisition-shift stress test, an independent-reference burden analysis and estimator diagnostics) and three documented failures (synthetic-corruption learning, second-annotator relabelling and reduced-order FFR).
 \end{enumerate}
-The headline is deliberately modest. A learned model does rank failures well, but most of its value is already available from one or two topology features.
+
+The headline is deliberately modest. Label-free triage works well in operational terms. But most of its value is already carried by one or two topology features, and the learned increment over them is small and sensitive to acquisition shift.
 
 \begin{figure}[t]
 \centering
@@ -50,38 +57,103 @@ The headline is deliberately modest. A learned model does rank failures well, bu
 \label{fig:dice}
 \end{figure}
 
+\section{Related work}
+\paragraph{Segmentation failure detection.} Quality control without ground truth has been approached by predicting overlap from the image and mask, by reverse classification accuracy \citep{valindria2017rca}, applied at population scale to cardiac MR \citep{robinson2019qc}, and by uncertainty and agreement scores. Two recent benchmarks evaluated confidence and uncertainty methods systematically across segmentation tasks \citep{kahl2024values,zenk2025failure}; \citet{zenk2025failure} found that pairwise agreement within an ensemble is a strong, simple baseline, and advocated risk--coverage evaluation \citep{geifman2017selective}. We adopt their ensemble baseline and risk--coverage reporting. Our target, though, is a binary, anatomically defined failure and not a continuous overlap score.
+
+\paragraph{Topology in vessel segmentation.} Topology-aware losses and metrics such as clDice \citep{shit2021cldice} recognise that tubular structures fail through breaks and false connections rather than lost volume. Coronary-specific work has standardised centerline evaluation \citep{schaap2009rotterdam}, released segmentation benchmarks \citep{gharleghi2022asoca,zeng2023imagecas,bransby2026imagecasx}, and labelled coronary trees with graph models \citep{hampe2024gnn}. In airways, skeleton-based gap detection has been combined with learned link classification \citep{oyer2025repair}. These works improve or evaluate segmentation \emph{with} a reference; we ask how far topology alone can triage reconstructions \emph{without} one.
+
+\paragraph{Downstream sensitivity.} Simulated FFR is highly sensitive to small lumen errors, especially in distal and severe lesions \citep{fernandez2024ffrct}, which motivates checking segmentation quality before physiological modelling.
+
 \section{Data and failure definition}
 \paragraph{Data.} We used ImageCAS \citep{zeng2023imagecas}, a public set of 1000 CCTA scans, with the ImageCAS-X re-annotation \citep{bransby2026imagecasx}, which provides 14-class coronary segment labels and centerlines for 800 scans. We used the ImageCAS-X split: 560 training, 80 validation and 160 test patients. No images or labels are redistributed.
 
-\paragraph{Segmenters.} All reconstructions came from the segmentation models released with ImageCAS-X \citep{bransby2026imagecasx}: CAS-Net, Swin UNETR \citep{hatamizadeh2022swinunetr}, FFR-UNet, and a five-fold nnU-Net \citep{isensee2021nnunet} (individual folds and their majority vote). We audited the nnU-Net data preparation: the 160 test scans were never in nnU-Net training. FFR-UNet was used only as a checkpoint released with the dataset; we did not locate a separate primary publication for it.
+\paragraph{Segmenters.} All reconstructions came from segmentation models released with ImageCAS-X \citep{bransby2026imagecasx}: CAS-Net, Swin UNETR \citep{hatamizadeh2022swinunetr}, FFR-UNet, and a five-fold nnU-Net \citep{isensee2021nnunet} (individual folds and their majority vote). We audited the nnU-Net data preparation: the 160 test scans were never in nnU-Net training. FFR-UNet was used as a checkpoint released with the dataset; we did not locate a separate primary publication for it.
 
-\paragraph{Critical-failure taxonomy (v3).} Failures are defined against the reference mask and its centerline. A point on the reference centerline is \emph{uncovered} if the nearest predicted lumen voxel is farther than $\max(1.5\,\mathrm{mm}, r)$, where $r$ is the local reference radius. A contiguous uncovered run $\geq 10$\,mm is a missed or broken segment (F1); a reference component split across predicted components is a disconnection (F2); predicted skeleton runs $\geq 10$\,mm lying $> 2$\,mm from the reference lumen are classified as over-extension, halo, detached false positive or leak (F3). A unit (segmenter $\times$ patient) is \textbf{critical} if it has (a) a missed or disconnected left main, LAD, LCx or RCA segment that starts within 50\,mm (geodesic) of the ostium or has reference radius $\geq 1.25$\,mm; (b) a leak (connected run with mean radius $\geq 2$\,mm) or a left--right bridge; or (c) a detached false positive with radius $\geq 2$\,mm. Side branches, posterior descending and posterolateral branches are excluded from (a). The taxonomy was frozen before any QA model was scored. The critical tier was motivated by failure-label prevalence on CAS-Net and Swin UNETR reconstructions (a broader ``severe'' tier fired on 64\% of units, mostly distal branches); FFR-UNet test labels were sealed until the single evaluation. No clinician defined or adjudicated the taxonomy.
+\paragraph{Critical-failure taxonomy.} Failures are defined against the reference mask and its centerline (parameters in Appendix~\ref{app:taxonomy}). A point on the reference centerline is \emph{uncovered} if the nearest predicted lumen voxel is farther than $\max(1.5\,\mathrm{mm}, r)$, where $r$ is the local reference radius.
+\begin{itemize}
+\item \textbf{F1:} a contiguous uncovered run of at least 10\,mm is a missed or broken segment.
+\item \textbf{F2:} a reference component split across predicted components is a disconnection.
+\item \textbf{F3:} predicted skeleton runs of at least 10\,mm lying more than 2\,mm from the reference lumen are classified as over-extension, halo, detached false positive or leak.
+\end{itemize}
+A unit (segmenter $\times$ patient) is \textbf{critical} if any of the following holds:
+\begin{enumerate}
+\item[(a)] it has a missed or disconnected left main (LM), LAD, LCx or RCA segment that starts within 50\,mm (geodesic) of the ostium, or has reference radius $\geq 1.25$\,mm;
+\item[(b)] it has a leak (a connected run with mean radius $\geq 2$\,mm) or a left--right bridge;
+\item[(c)] it has a detached false positive with radius $\geq 2$\,mm.
+\end{enumerate}
+Side branches and the posterior descending and posterolateral branches are excluded from (a).
+
+The taxonomy was frozen before any QA model was scored. The critical tier was motivated by failure-label prevalence on CAS-Net and Swin UNETR reconstructions: a broader ``severe'' tier fired on 64\% of units, mostly in small distal branches. FFR-UNet test labels stayed sealed until the single evaluation. No clinician defined or adjudicated the taxonomy.
 
 \section{Methods}
-\paragraph{Triage endpoint.} For each segmenter separately, units are ranked by a score and the top $k = \lfloor 0.2\,n \rfloor$ are reviewed ($k = 32$ of 160). With $P$ critical units and $C$ of them in the reviewed set, recall is $C/P$, precision is $C/k$, and the oracle recall is $\min(P,k)/P$. The primary endpoint is \emph{normalised recall} $\NR = (C/P)/(\min(P,k)/P) = C/\min(P,k)$, with ties at the cut-off averaged. We also report AUROC, the area under the risk--coverage curve (AURC) \citep{geifman2017selective} and raw counts.
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners=2pt, align=center, font=\small, inner sep=3pt, minimum height=9mm, fill=white},
+  feat/.style={box, text width=36mm, minimum height=8mm},
+  hl/.style={box, draw=accent, very thick},
+  arr/.style={-{Latex[length=1.8mm]}, semithick}]
+\node[box] (ct) at (0,0) {CCTA\\scan};
+\node[box] (seg) at (2.15,0) {Segmenter\\(any model)};
+\node[box] (mask) at (4.55,0) {Predicted\\lumen mask};
+\node[feat] (g) at (8.0,1.15) {Graph features (14)};
+\node[feat] (o) at (8.0,0) {Ostium features (7)\\{\scriptsize aorta from CT}};
+\node[feat] (m4) at (8.0,-1.15) {Shape CNN on mask (M4)};
+\node[hl] (lr) at (11.55,0) {Frozen L2\\logistic score};
+\node[box] (rank) at (14.25,0) {Rank batch,\\review top 20\%};
+\draw[arr] (ct) -- (seg);
+\draw[arr] (seg) -- (mask);
+\foreach \f in {g,o,m4} {
+  \draw[arr] (mask.east) -- ++(0.35,0) |- (\f.west);
+  \draw[arr] (\f.east) -| ++(0.35,0) |- (lr.west);
+}
+\draw[arr] (lr) -- (rank);
+\end{tikzpicture}
+\caption{The triage pipeline at deployment. All inputs to the frozen score derive from the predicted mask, plus an aorta mask segmented from the CT for ostium features. No reference annotation is used. Reference masks are used only offline, to define failure labels for development and evaluation.}
+\label{fig:pipeline}
+\end{figure}
 
-\paragraph{Development data and candidate models.} Model fitting and selection used only development data: the 80 validation patients $\times$ \{CAS-Net, Swin UNETR\} (160 units, 21 critical), plus synthetic corruptions of the 560 training reference trees. All candidates use only the predicted mask and, for ostium features, an aorta mask from TotalSegmentator \citep{wasserthal2023totalseg} run on the CT:
+\paragraph{Triage endpoint.} For each segmenter separately, units are ranked by a score and the top $k = \lfloor 0.2\,n \rfloor$ are reviewed ($k = 32$ of 160). With $P$ critical units and $C$ of them in the reviewed set, recall is $C/P$, precision is $C/k$ and the oracle recall is $\min(P,k)/P$. The primary endpoint is \emph{normalised recall},
+\[
+\NR \;=\; \frac{C/P}{\min(P,k)/P} \;=\; \frac{C}{\min(P,k)},
+\]
+with ties at the cut-off weighted fractionally. Normalising by the oracle makes the endpoint comparable across segmenters whose failure rates differ (19--40\% here). We also report AUROC, risk--coverage curves \citep{geifman2017selective} and raw counts.
+
+\paragraph{Development data and candidate models.} Model fitting and selection used only development data: the 80 validation patients $\times$ \{CAS-Net, Swin UNETR\} (160 units, 21 critical), plus synthetic corruptions of the 560 training reference trees. Candidates use the predicted mask and, for ostium features, an aorta mask from TotalSegmentator \citep{wasserthal2023totalseg} run on the CT (Fig.~\ref{fig:pipeline}):
 \begin{itemize}
 \item \textbf{M1, graph features} (14): numbers of components and of components $\geq 10$\,mm, total and per-component skeleton length, share of skeleton length in the two largest components, endpoints, junctions, branch depth, radius violations, tortuosity, maximum radius, leak fraction and gaps.
 \item \textbf{M3, ostium features} (7): number and position of ostia, left and right attachment to the aorta, and the length and share of skeleton not attached to an ostium.
-\item \textbf{M4, shape plausibility}: a small 3D CNN reading only the binary lumen mask (resampled to $96^3$ at 2\,mm) and trained on synthetic corruptions of training reference trees. The corruption operators were segment deletion, gaps, distal truncation, detached tubes and blobs, leak bulges, left--right bridges and local erosion, plus mild ``clean'' operators. Corruption labels came from the frozen taxonomy.
+\item \textbf{M4, shape plausibility}: a small 3D CNN reading only the binary lumen mask, resampled to $96^3$ at 2\,mm. It was trained on synthetic corruptions of training reference trees: segment deletion, gaps, distal truncation, detached tubes and blobs, leak bulges, left--right bridges and local erosion, plus mild ``clean'' operators. Corruption labels came from the frozen taxonomy.
 \end{itemize}
-Further candidates (test-time augmentation uncertainty, image-evidence path features and proximal-connectivity features) were evaluated on development data and not selected. The pre-registered selection rule (normalised recall plus AURC, 5-fold patient-grouped cross-validation) selected \textbf{M1+M3+M4}: an L2-regularised logistic model over 22 standardised inputs (development $\NR$ 0.571). The weights, preprocessing and CNN were frozen with SHA-256 hashes before the test evaluation.
+Further candidates were evaluated on development data and not selected: test-time augmentation uncertainty, image-evidence path features and proximal-connectivity features. The pre-registered selection rule (normalised recall plus AURC, 5-fold patient-grouped cross-validation) selected \textbf{M1+M3+M4}: an L2-regularised logistic model over 22 standardised inputs (development $\NR$ 0.571). Its weights, preprocessing and CNN were frozen with SHA-256 hashes before the test evaluation (Appendix~\ref{app:model}).
 
-\paragraph{Comparators.} (i) The best \emph{pre-specified simple rule}, chosen on development data from four candidates (number of components $\geq 10$\,mm, number of gaps, total-length z-score, maximum-radius z-score): the component count (development $\NR$ 0.476). (ii) Ensemble agreement following \citet{zenk2025failure}: mean pairwise Dice, clDice and Betti-0 error across the five nnU-Net folds, ranking the majority-vote reconstruction. (iii) Random ranking.
+\paragraph{Comparators.}
+\begin{enumerate}
+\item[(i)] The best \emph{pre-specified simple rule}, chosen on development data from four candidates: number of components $\geq 10$\,mm, number of gaps, total-length z-score and maximum-radius z-score. The winner was the component count (development $\NR$ 0.476).
+\item[(ii)] Ensemble agreement following \citet{zenk2025failure}: mean pairwise Dice, clDice \citep{shit2021cldice} and Betti-0 error across the five nnU-Net folds, ranking the majority-vote reconstruction.
+\item[(iii)] Random ranking.
+\end{enumerate}
 
-\paragraph{Pre-registered success criteria.} The primary evaluation is the single sealed run on FFR-UNet reconstructions of the 160 test patients. \textbf{S1}: $\NR \geq 0.75$. \textbf{S2}: model minus best rule $\geq +10$\pp\ $\NR$ with the paired patient-bootstrap 95\% CI (2000 resamples) excluding 0. \textbf{S3}: non-inferior to the best ensemble comparator (difference $\geq -5$\pp). \textbf{S4}: recall of critical units with Dice $\geq 0.90$ at least 50\%. \textbf{S5}: segment localisation, which was not implemented. A leave-one-segmenter-out (LOSO) analysis over \{CAS-Net, Swin UNETR, FFR-UNet\} was pre-specified as secondary.
+\paragraph{Pre-registered success criteria.} The primary evaluation is the single sealed run on FFR-UNet reconstructions of the 160 test patients.
+\begin{itemize}
+\item \textbf{S1:} $\NR \geq 0.75$.
+\item \textbf{S2:} model minus best rule $\geq +10$\pp\ $\NR$, with the paired patient-bootstrap 95\% CI (2000 resamples) excluding 0.
+\item \textbf{S3:} non-inferior to the best ensemble comparator (difference $\geq -5$\pp).
+\item \textbf{S4:} recall of critical units with Dice $\geq 0.90$ of at least 50\%.
+\item \textbf{S5:} segment localisation. This was not implemented.
+\end{itemize}
+A leave-one-segmenter-out (LOSO) analysis over \{CAS-Net, Swin UNETR, FFR-UNet\} was pre-specified as secondary.
 
-\paragraph{Pre-registration trail.} The analysis plan and eight dated addenda (A--H, ending with the freeze) were written before the test evaluation. After it, six further dated addenda (I--N) with ten errata were written before each follow-up analysis was computed; each follow-up was run once on the sealed outputs. All documents are kept with commit history in the project repository. This is a self-maintained record, not a public registry, and we treat it as such.
+\paragraph{Pre-registration trail.} The analysis plan and eight dated addenda (A--H, ending with the freeze) were written before the test evaluation. After it, six further addenda (I--N) and ten dated errata were written before each follow-up was computed, and each follow-up was run once on the sealed outputs. Appendix~\ref{app:timeline} gives the timeline. All documents are public with their commit history. This is a self-maintained record, not a public registry, and we treat it as such.
 
 \section{Results}
 \subsection{Primary sealed evaluation}
-Table~\ref{tab:main} summarises the sealed evaluation. On FFR-UNet, the held-out segmenter, 64 of 160 reconstructions (40\%) were critical. Reviewing 32, the frozen model caught 29 (precision 0.91, raw recall 0.45; the oracle could catch 32). The pre-specified rule caught 25.
+Table~\ref{tab:main} summarises the sealed evaluation. On FFR-UNet, the held-out segmenter, 64 of 160 reconstructions (40\%) were critical. Reviewing 32, the frozen model caught 29 (precision 0.91; raw recall 0.45, against an oracle maximum of 32 catches). The pre-specified rule caught 25.
 
 \begin{table}[t]
 \centering
 \small
-\caption{Sealed test evaluation (160 patients per segmenter). $P$: critical units. $\NR$: normalised recall at the 20\% budget. CIs are paired patient bootstrap 95\%. FFR-UNet is the pre-registered primary and was never used in development; CAS-Net and Swin UNETR validation (not test) reconstructions were development data; nnU-Net reconstructions were never used for fitting.}
+\caption{Sealed test evaluation (160 patients per segmenter). $P$: critical units; $\NR$: normalised recall at the 20\% budget. CIs are paired patient-bootstrap 95\%. FFR-UNet is the pre-registered primary and was never used in development. CAS-Net and Swin UNETR \emph{validation} reconstructions were development data. nnU-Net reconstructions were never used for fitting.}
 \label{tab:main}
 \begin{tabular}{lrrrrl}
 \toprule
@@ -95,21 +167,28 @@ nnU-Net majority vote & 30 & 0.600 & 0.420 & 0.814 & $+0.180$ \\
 \end{tabular}
 \end{table}
 
-\paragraph{Criteria.} \textbf{S1 passed} ($\NR$ 0.906 $\geq$ 0.75). \textbf{S2 failed}: the gain over the rule was $+12.5$\pp, above the $+10$\pp\ bar, but the 95\% CI was $[-0.3, +23.9]$\pp. The AUROC difference was positive ($+0.064$ $[+0.007, +0.119]$). \textbf{S3 passed}: the best ensemble comparator (pairwise clDice) reached $\NR$ 0.500 on majority-vote reconstructions, against 0.906 for the frozen model on FFR-UNet, a difference of $+0.41$ $[+0.16, +0.56]$. That comparison is across different reconstruction sets of the same patients, as pre-specified. On the same majority-vote units, the frozen model reached 0.600. \textbf{S4} could not be assessed meaningfully: only 2 FFR-UNet critical units had Dice $\geq 0.90$, and neither was flagged. Across CAS-Net and Swin UNETR, 3 of 12 and 2 of 3 such units were flagged. \textbf{S5} was not implemented.
+\paragraph{Criteria.}
+\begin{itemize}
+\item \textbf{S1 passed}: $\NR$ was 0.906, against a bar of 0.75.
+\item \textbf{S2 failed}: the gain over the rule was $+12.5$\pp, above the $+10$\pp\ bar, but its 95\% CI was $[-0.3, +23.9]$\pp. The AUROC difference was positive: $+0.064$ $[+0.007, +0.119]$.
+\item \textbf{S3 passed}: the best ensemble comparator (pairwise clDice) reached $\NR$ 0.500 on majority-vote reconstructions, against 0.906 for the frozen model on FFR-UNet, a difference of $+0.41$ $[+0.16, +0.56]$. As pre-specified, this compares different reconstruction sets of the same patients. On the same majority-vote units, the frozen model reached 0.600.
+\item \textbf{S4 could not be assessed meaningfully}: only 2 FFR-UNet critical units had Dice $\geq 0.90$, and neither was flagged. For CAS-Net and Swin UNETR, 3 of 12 and 2 of 3 such units were flagged.
+\item \textbf{S5 was not implemented.}
+\end{itemize}
 
-\paragraph{Secondary.} In the pre-specified LOSO analysis, the model refit without the held-out segmenter beat the rule in 3 of 3 cases ($\NR$ 0.906 vs 0.781, 0.594 vs 0.523, 0.781 vs 0.556). The frozen model was ahead of the rule on all four reconstruction sets (Table~\ref{tab:main}). Calibration was moderate (ECE 0.09--0.15), so the score should be read as a ranking, not a probability. Fig.~\ref{fig:rc} shows the risk--coverage curves.
+\paragraph{Secondary.} In the pre-specified LOSO analysis, the model refit without the held-out segmenter beat the rule in 3 of 3 cases ($\NR$ 0.906 vs 0.781, 0.594 vs 0.523, 0.781 vs 0.556). The frozen model was ahead of the rule on all four reconstruction sets (Table~\ref{tab:main}). Calibration was moderate (expected calibration error 0.09--0.15; Brier 0.13--0.18), so the score should be read as a ranking, not a probability. Fig.~\ref{fig:rc} shows the risk--coverage curves.
 
-\paragraph{An exploratory feature matches the model.} The share of skeleton length in the two largest connected components (\texttt{g\_share\_top2}) was not on the pre-specified rule list. Used alone, it was within $+0.031$ $\NR$ ($[-0.125, +0.125]$) and $-0.003$ AUROC of the frozen model on FFR-UNet, and significantly better than the pre-specified rule. We report it as exploratory. It suggests that most of the triage signal is a single fragmentation measure.
+\paragraph{An exploratory feature matches the model.} The share of skeleton length in the two largest connected components (\texttt{g\_share\_top2}) was not on the pre-specified rule list. On its own it was within $+0.031$ $\NR$ ($[-0.125, +0.125]$) and $-0.003$ AUROC of the frozen model on FFR-UNet, and it was significantly better than the pre-specified rule ($\NR$ difference $0.094$, $[0.012, 0.240]$). We report it as exploratory. It suggests that most of the triage signal is a single fragmentation measure: does the prediction form two coherent trees, or many pieces?
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/risk_coverage.png}
-\caption{Risk--coverage curves on the sealed test set: selective critical-failure risk against the fraction of reconstructions accepted, ordered by confidence. Frozen model (blue), pre-specified rule (orange), exploratory fragmentation feature (green), and ensemble agreement on nnU-Net majority-vote reconstructions (right).}
+\caption{Risk--coverage curves on the sealed test set: selective critical-failure risk against the fraction of reconstructions accepted, ordered by confidence (lower is better). Frozen model (blue), pre-specified rule (orange), exploratory fragmentation feature (green), and ensemble agreement on nnU-Net majority-vote reconstructions (right).}
 \label{fig:rc}
 \end{figure}
 
 \subsection{Pre-registered follow-up analyses}
-Figure~\ref{fig:forest} summarises the follow-up analyses on the model-minus-rule difference.
+Figure~\ref{fig:forest} and Table~\ref{tab:follow} summarise the follow-up analyses.
 
 \begin{figure}[t]
 \centering
@@ -150,34 +229,158 @@ Figure~\ref{fig:forest} summarises the follow-up analyses on the model-minus-rul
 \label{fig:forest}
 \end{figure}
 
-\paragraph{S2 diagnostics (Addendum M).} Among the 64 critical FFR-UNet units, 20 were caught by both rankers, 9 only by the model, 5 only by the rule and 30 by neither. The original bootstrap was reproduced exactly; at 20{,}000 resamples the CI was $[-0.7, +23.5]$\pp. An exact McNemar test \citep{mcnemar1947} on the discordant catches gave $p = 0.42$. A simulation that used the observed effect and discordance as truth (optimistic) gave only 40\% power to meet the S2 criterion at $n=160$, and 67\% even at $n = 480$. The criterion requires both an estimate $\geq +10$\pp\ and a lower bound $> 0$, and the true effect appears close to the bar. Under those conditions it is nearly unattainable at realistic sample sizes, which is consistent with the sample-size arguments of \citet{gibson2017power}.
+\begin{table}[t]
+\centering
+\small
+\caption{Follow-up analyses on the 160 test patients. $C$: critical units caught among the 32 reviewed. $\Delta$: model minus rule $\NR$. Fold CIs come from a joint patient bootstrap and are reported only for the fold mean.}
+\label{tab:follow}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrrrl}
+\toprule
+Analysis & Reconstructions & $P$ & $C$ model & $C$ rule & $\NR$ model / rule & $\Delta$ [95\% CI] \\
+\midrule
+J & nnU-Net fold 0 & 32 & 18 & 16.7 & 0.562 / 0.522 & $+0.040$ \\
+J & nnU-Net fold 1 & 30 & 17 & 11.9 & 0.567 / 0.396 & $+0.171$ \\
+J & nnU-Net fold 2 & 32 & 17 & 13.2 & 0.531 / 0.413 & $+0.118$ \\
+J & nnU-Net fold 3 & 32 & 19 & 14.0 & 0.594 / 0.438 & $+0.156$ \\
+J & nnU-Net fold 4 & 37 & 22 & 19.3 & 0.688 / 0.602 & $+0.086$ \\
+J & \textbf{fold mean} & & & & & $\mathbf{+0.114}$ $[+0.030,\,+0.207]$ \\
+\midrule
+K & CAS-Net, unperturbed & 34 & -- & -- & 0.625 / 0.523 & $+0.102$ $[-0.034,\,+0.225]$ \\
+K & CAS-Net, noise $+50\%$ & 35 & 20 & 16.2 & 0.625 / 0.506 & $+0.119$ $[-0.023,\,+0.275]$ \\
+K & CAS-Net, contrast $\times 0.75$ & 46 & 25 & 22.5 & 0.781 / 0.703 & $+0.078$ $[-0.079,\,+0.195]$ \\
+K & CAS-Net, blur 0.6\,mm & 38 & 18 & 17.4 & 0.562 / 0.542 & $+0.020$ $[-0.135,\,+0.131]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\paragraph{Replication across nnU-Net folds (Addendum J).} We applied the frozen model, unchanged, to each of the five nnU-Net folds' test reconstructions, treating the folds as one correlated family. Per-fold differences were $+4.0$, $+17.1$, $+11.8$, $+15.6$ and $+8.6$\pp, with a mean of \textbf{$+11.4$\pp\ $[+3.0, +20.7]$}, which meets the S2 bar. The AUROC difference was positive in every fold. This is the same 160 patients, and the folds track a majority-vote result that had already been seen. It is evidence of consistency across reconstructions, not independent-patient validation. The exploratory fragmentation feature was within 0--7\pp\ of the model on every fold.
+\paragraph{S2 diagnostics (Addendum M).} Among the 64 critical FFR-UNet units, 20 were caught by both rankers, 9 only by the model, 5 only by the rule and 30 by neither. The original bootstrap was reproduced exactly; at 20{,}000 resamples the CI was $[-0.7, +23.5]$\pp. An exact McNemar test \citep{mcnemar1947} on the discordant catches gave $p = 0.42$.
 
-\paragraph{Acquisition-shift stress test (Addendum K).} We degraded the 160 test CTs in three pre-specified ways and re-ran CAS-Net on each: Gaussian noise raising the noise standard deviation by 50\%; isotropic Gaussian blur, $\sigma = 0.6$\,mm; and contrast compressed by 0.75 about the aortic median. Critical prevalence rose from 21\% to 22--29\%. The model's advantage over the rule was $+11.9$\pp\ under noise, $+7.8$\pp\ under contrast and $+2.0$\pp\ under blur, all with CIs including zero. Its AUROC advantage disappeared under all three. Every model input is derived from the predicted mask, and the aorta mask came from the unperturbed CT. The shrinking advantage therefore reflects a change in the segmenter's failure profile, not image features failing: the learned combination's increment over a single topology feature is not robust to shift.
+A simulation that used the observed effect and discordance as the truth (an optimistic assumption) gave only 40\% power to meet the S2 criterion at $n=160$, and 67\% even at $n = 480$. S2 requires both an estimate of at least $+10$\pp\ and a lower bound above zero, and the true effect appears to be close to the bar. Under those conditions the criterion is nearly unattainable at realistic sample sizes, consistent with the sample-size arguments of \citet{gibson2017power}. In hindsight, a non-inferiority-plus-direction criterion would have been better matched to the plausible effect size.
 
-\paragraph{Independent-lumen burden (Addendum L).} To probe label circularity, we built a failure measure without the taxonomy machinery: the fraction of the \emph{original} ImageCAS lumen, inside a 2\,mm band around the major vessels, that the prediction does not cover. The frozen score correlated with this measure (pooled Spearman 0.26 $[0.13, 0.37]$), including after regressing out the taxonomy burden (0.13 $[0.03, 0.22]$). Per segmenter, the association held for FFR-UNet, held only before adjustment for Swin UNETR, and was not significant for CAS-Net. The measure is dominated by a lumen-definition mismatch (mean value about 0.65 for every segmenter; see the next paragraph), so we treat this as weak support only.
+\paragraph{Replication across nnU-Net folds (Addendum J).} We applied the frozen model, unchanged, to each nnU-Net fold's test reconstructions, treating the five folds as one correlated family. All five differences were positive (Table~\ref{tab:follow}), with a mean of $+11.4$\pp\ $[+3.0, +20.7]$, which meets the S2 bar, and the AUROC difference was positive in every fold. These are the same 160 patients, and the folds track a majority-vote result that had already been seen. This is evidence of consistency across reconstructions, not independent-patient validation. The exploratory fragmentation feature was within 0--7\pp\ of the model on every fold.
 
-\paragraph{Second-annotator relabelling (Addendum I, negative).} We planned to recompute the critical labels against the original ImageCAS masks as a second annotation. On validation, these masks covered a 2--6$\times$ larger lumen than ImageCAS-X and contained 80--99\% of it (median Dice 0.43), with identical grids and no orientation error. Relabelled prevalence was 0.93 against 0.13 (kappa 0.02). The two references encode different lumen definitions, so this analysis cannot test label robustness. We did not run it on the test set.
+\paragraph{Acquisition-shift stress test (Addendum K).} We degraded the 160 test CTs in three pre-specified ways and re-ran CAS-Net on each:
+\begin{itemize}
+\item Gaussian noise raising the noise standard deviation by 50\%;
+\item isotropic Gaussian blur with $\sigma = 0.6$\,mm;
+\item contrast compressed by a factor of 0.75 about the aortic median.
+\end{itemize}
+Each perturbation was checked against its specification before use. Critical prevalence rose from 21\% to 22--29\%. The model's advantage over the rule was preserved under noise, shrank under contrast and nearly vanished under blur, with every CI including zero. Its AUROC advantage disappeared under all three (model/rule AUROC 0.78/0.79, 0.80/0.78 and 0.72/0.72). Every model input is derived from the predicted mask, and the aorta mask came from the unperturbed CT, so the shrinking advantage reflects a change in the segmenter's \emph{failure profile}, not degraded image features. The learned combination's increment over a single topology feature is not robust to this shift.
 
-\subsection{Downstream consequences and negative findings}
-Pooled over FFR-UNet, CAS-Net and Swin UNETR, vessels in flagged reconstructions had more severe-stenosis category flips than unflagged ones (2.1\% $[0.5, 4.3]$ vs 0.3\% $[0.0, 0.6]$; diameter-stenosis bands following CAD-RADS 2.0 \citep{cury2022cadrads}). They also had more vessels with reference-centerline coverage below 0.9 (17.2\% vs 9.1\%). These are geometric proxies computed from masks, not clinical outcomes.
+\paragraph{Independent-lumen burden (Addendum L).} To probe label circularity, we built a failure measure without the taxonomy machinery. It is the fraction of the \emph{original} ImageCAS lumen, inside a 2\,mm band around the major vessels, that the prediction does not cover, computed by voxel set operations only. The frozen score correlated with this measure (pooled Spearman 0.26 $[0.13, 0.37]$), including after the taxonomy burden was regressed out (0.13 $[0.03, 0.22]$). Per segmenter, the association held for FFR-UNet ($0.39$ $[0.24, 0.52]$), held only before adjustment for Swin UNETR, and was not significant for CAS-Net. The measure is dominated by a lumen-definition mismatch between annotations (next paragraph): its mean was about 0.65 for every segmenter, so the pre-specified high-burden AUROC was not estimable. We treat this as weak support only.
 
-Three planned components failed and are reported as negative results. (i) The synthetic-corruption CNN (M4) was uninformative on its own: corruptions of reference trees did not resemble real segmenter errors. (ii) A reduced-order 1D fractional-flow-reserve model was unstable to sub-voxel perturbations: the 95th percentile of the test--retest $|\Delta\mathrm{FFR}|$ was about 0.3, even with TEASAR centerlines and sub-voxel radii. This agrees with reports of high FFR-CT sensitivity to lumen uncertainty \citep{fernandez2024ffrct}, and we made no FFR claims. (iii) Uncertainty features (test-time-augmentation disagreement and entropy) added nothing to the graph features on development data.
+\paragraph{Second-annotator relabelling (Addendum I, negative).} We planned to recompute the critical labels against the original ImageCAS masks as a second annotation. On validation scans, these masks covered a 2--6$\times$ larger lumen than ImageCAS-X and contained 80--99\% of it (median Dice 0.43). Grids matched and there was no orientation error, and centerline extraction was not the cause (98.8\% agreement between provided and skeleton centerlines). Relabelled prevalence was 0.93, against 0.13 originally (Cohen's kappa 0.02). The two references encode different lumen definitions, so this analysis cannot test label robustness, and we did not run it on the test set.
+
+\subsection{Downstream consequences}
+Table~\ref{tab:clin} compares vessels in flagged and unflagged reconstructions, pooled over FFR-UNet, CAS-Net and Swin UNETR. Flagged reconstructions had seven times the rate of flips across the severe-stenosis boundary (diameter-stenosis bands following CAD-RADS 2.0 \citep{cury2022cadrads}) and twice the rate of incomplete centerline coverage. These are geometric proxies computed from masks, not clinical outcomes.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Vessel-level downstream proxies (LM, LAD, LCx, RCA) for reconstructions flagged versus not flagged by the frozen model, pooled over three segmenters. CIs are patient-bootstrap 95\%.}
+\label{tab:clin}
+\begin{tabular}{lrr}
+\toprule
+ & Flagged (384 vessels, 56 patients) & Unflagged (1533 vessels, 146 patients) \\
+\midrule
+Severe-stenosis band flip & 2.1\% $[0.5, 4.3]$ & 0.3\% $[0.0, 0.6]$ \\
+Obstructive band flip & 2.6\% $[0.8, 4.9]$ & 2.2\% $[1.4, 3.1]$ \\
+Centerline coverage $< 0.9$ & 17.2\% $[12.8, 21.6]$ & 9.1\% $[7.3, 10.8]$ \\
+Median $|$stenosis error$|$ (pp) & 8.2 $[6.7, 9.6]$ & 6.3 $[5.5, 6.7]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Negative findings}
+Three planned components failed. We report them because each is a plausible approach others may try.
+\begin{enumerate}
+\item[(i)] \textbf{Synthetic-corruption learning.} The shape CNN (M4) was uninformative on its own on development data: corruptions of reference trees did not resemble real segmenter errors. Its coefficient in the frozen stack is small and negative (Appendix~\ref{app:model}).
+\item[(ii)] \textbf{Reduced-order FFR.} A 1D fractional-flow-reserve model was unstable to sub-voxel perturbations: the 95th percentile of test--retest $|\Delta\mathrm{FFR}|$ was about 0.3, even with TEASAR centerlines and sub-voxel radii. This agrees with reports of high FFR-CT sensitivity to lumen uncertainty \citep{fernandez2024ffrct}. We make no FFR claims.
+\item[(iii)] \textbf{Uncertainty features.} Test-time-augmentation disagreement and entropy added nothing to the graph features on development data.
+\end{enumerate}
 
 \section{Discussion}
-Label-free triage of coronary reconstructions works in the sense that matters operationally. Reviewing a fifth of the cases catches most of the critical failures that are catchable at that budget, and more than ensemble agreement (0.600 vs 0.500 on the same majority-vote reconstructions). Three findings limit what a learned model adds, however. First, the pre-registered superiority test over a simple rule failed narrowly, and the estimator diagnostics show it would be hard to pass at any realistic sample size, given an effect close to the bar. Second, an exploratory single feature, fragmentation of the predicted tree, matched the model. Third, the model's increment shrank under acquisition shift. The fold replication shows the increment is directionally consistent across reconstructions of the same patients.
+Label-free triage of coronary reconstructions works in the sense that matters operationally. Reviewing a fifth of the cases catches most of the critical failures that are catchable at that budget, and more than ensemble agreement does (0.600 vs 0.500 on the same majority-vote reconstructions). Three findings limit what a learned model adds:
+\begin{itemize}
+\item the pre-registered superiority test over a simple rule failed narrowly, and the estimator diagnostics show it would be hard to pass at any realistic sample size, given an effect close to the bar;
+\item an exploratory single feature, fragmentation of the predicted tree, matched the model;
+\item the model's increment shrank under acquisition shift.
+\end{itemize}
+The fold replication shows that the increment is directionally consistent across reconstructions of the same patients.
 
-For practice, this suggests starting with transparent topology features (component structure, ostium attachment) for coronary QC, and justifying learned combinations by replication on new patients and sites. It also explains why ensemble agreement underperformed here: fold disagreement measures uncertainty, while critical failures in coronary trees are often systematic and shared across folds.
+\paragraph{Why topology works.} The critical failures in our taxonomy are, by construction, failures of connectivity and calibre in a few large vessels: a missed trunk leaves the tree in pieces, and a leak or bridge adds a large spurious component. A fragmentation measure observes these directly from the prediction. Ensemble disagreement is plausibly weaker here because many critical failures are systematic: when every fold makes the same mistake, the folds agree. This differs from the general finding of \citet{zenk2025failure}, and it is consistent with the anatomy of the failures we target.
 
-\paragraph{Limitations.} All data come from one source cohort (ImageCAS); we found no openly available independent CCTA dataset with comparable lumen labels for external testing. The failure taxonomy is reference-based and was not defined or adjudicated by clinicians, and there is no reader study. The fold replication and stress test reuse the same 160 test patients. The pre-registration is self-maintained rather than in a public registry. The critical tier was motivated by label prevalence on two development segmenters' reconstructions, although no QA score was examined. Calibration was moderate, and conformal risk control did not give useful guarantees at this sample size.
+\paragraph{What this study shows and does not show.} It shows that, on one public cohort and several segmenters, a transparent mask-derived score ranks anatomically critical failures well at a fixed review budget. It does not show clinical benefit: there is no reader study and no outcome data, and the taxonomy is reference-based. It also does not show that the learned model is better than its best single feature, or that results transfer to other sites.
 
-\paragraph{Use of AI assistants.} The analysis code, experiment orchestration and manuscript drafts were produced with substantial assistance from AI coding and writing assistants (Anthropic Claude, OpenAI Codex, DeepSeek), working under the author's direction. The author directed the study, reviewed the analyses and results, and takes full responsibility for the content.
+\paragraph{Practical recommendation.} For coronary segmentation QC, start with interpretable topology features (component structure, ostium attachment) and a fixed review budget. Justify any learned combination by replication on new patients and sites, not by in-sample gains.
 
-\paragraph{Acknowledgements.} Compute was provided by an AMD Developer Cloud credit (AMD Instinct MI300X). We thank the creators of ImageCAS and ImageCAS-X for making their data and models available.
+\paragraph{Limitations.} All data come from one source cohort (ImageCAS); we found no openly downloadable independent CCTA dataset with comparable lumen labels for external testing. The failure taxonomy is reference-based and was neither defined nor adjudicated by clinicians, and there is no reader study. The fold replication and the stress test reuse the same 160 test patients. The pre-registration is self-maintained rather than held in a public registry. The critical tier was motivated by label prevalence on two development segmenters' reconstructions, although no QA score was examined at that point. Calibration was moderate, and conformal risk control did not give useful guarantees at this sample size.
 
-\paragraph{Data and code.} ImageCAS and ImageCAS-X are available from their authors under their respective terms; this work redistributes no images or labels. Code, the frozen model hashes and the full pre-registration trail will be released with a later version of this preprint.
+\paragraph{Future work.} External validation on an independent cohort with lumen labels, a reader study on flagged versus unflagged cases, and a prospectively registered replication with a non-inferiority-plus-direction criterion are the natural next steps.
+
+\section*{Use of AI assistants}
+The analysis code, experiment orchestration and manuscript drafts were produced with substantial assistance from AI coding and writing assistants (Anthropic Claude, OpenAI Codex, DeepSeek), working under the author's direction. The author directed the study, reviewed the analyses and results, and takes full responsibility for the content.
+
+\section*{Acknowledgements}
+Compute was provided by an AMD Developer Cloud credit (AMD Instinct MI300X). We thank the creators of ImageCAS and ImageCAS-X for making their data and models available.
+
+\section*{Data and code availability}
+ImageCAS and ImageCAS-X are available from their authors under their respective terms; this work redistributes no images or labels. Code, frozen-model hashes, aggregate results and the full pre-registration trail are available at \url{https://github.com/vhmaadhav/coronarysafe} (MIT licence).
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
+
+\clearpage
+\begin{appendices}
+\section{Pre-registration timeline}
+\label{app:timeline}
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+Date (2026) & Event \\
+\midrule
+14 Nov & Taxonomy v3 frozen (critical tier, sensitivity variants). Analysis plan v1 frozen: endpoints, comparators, candidate models, S1--S5. \\
+14 Nov & Addenda A--G, each before any test evaluation: circularity checks, extra candidates, CFD protocol and its verification gates, proximal-connectivity candidate, ensemble comparators, audit of nnU-Net test exclusion. \\
+15 Nov, 02:00 UTC & Addendum H, final freeze: selected model M1+M3+M4, its SHA-256 hashes and the best pre-specified rule. \\
+15 Nov & Single sealed test evaluation (S1--S5, LOSO), followed by descriptive post-hoc analyses. \\
+15 Nov & Addendum I (second annotator) run on validation only; found infeasible, so no test run. \\
+15 Nov & Addenda J--N and errata 1--10 frozen before each computation. Sealed Read 1 (M, J) and Read 2 (L, K) run once each. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Taxonomy parameters}
+\label{app:taxonomy}
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+Parameter & Value \\
+\midrule
+Coverage tolerance (F1) & uncovered if nearest predicted voxel $> \max(1.5\,\mathrm{mm}, r_{\text{ref}})$ \\
+Minimum run (F1, F2 coverage, F3) & 10\,mm \\
+F2 coverage distance & 2\,mm \\
+F3 far / terminal / halo distances & 2 / 4 / 3\,mm \\
+F3 thin / thick radius & 1.5 / 2.0\,mm \\
+Detached false-positive severe length & 20\,mm \\
+Critical: proximal distance / calibre & $\leq 50$\,mm geodesic from ostium, or reference radius $\geq 1.25$\,mm \\
+Critical: detached false-positive radius & $\geq 2$\,mm \\
+Major vessels & LM, LAD, LCx, RCA (posterior descending/posterolateral excluded from critical) \\
+Pre-specified sensitivity variants & run 5/20\,mm; tolerance 1.0/2.0\,mm; critical distance 40/60\,mm; critical radius 1.0/1.5\,mm \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Frozen model}
+\label{app:model}
+The frozen score is an L2-regularised logistic regression on 22 inputs, after median imputation and z-scoring, all fitted on the 160 development units. Its largest standardised coefficients were: unattached skeleton length ($+0.33$), unattached share ($+0.26$), number of components ($+0.24$), maximum branch depth ($-0.23$), radius violations ($+0.20$) and the M4 logit ($-0.29$). The negative M4 weight is consistent with M4 being uninformative on real errors. Removing any single input (in-sample) changed development $\NR$ by at most 0.05. SHA-256 prefixes of the frozen files: model specification \texttt{56a666ef}, CNN weights \texttt{baf841cf}, orientation convention \texttt{53ea24bf}.
+
+\section{Compute}
+GPU work (M4 training and scoring, segmentation of perturbed CTs) ran on one AMD Instinct MI300X (192\,GB) via AMD Developer Cloud, using PyTorch on ROCm. Nine concurrent CAS-Net workers (about 120\,s per case with test-time augmentation) produced the 480 perturbed reconstructions in about two hours. Labelling, features and statistics ran on CPU.
+\end{appendices}
+
 \end{document}
