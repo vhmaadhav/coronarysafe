@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coronarysafe"
-version = "0.1.0"
-description = "QA layer for AI coronary-artery segmentations (CTA): graph/uncertainty features and failure taxonomy."
+version = "1.0.0"
+description = "Label-free triage of critical failures in AI coronary artery segmentations from CT angiography."
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [

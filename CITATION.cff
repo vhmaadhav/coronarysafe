@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the preprint."
+title: "CoronarySafe: label-free triage of critical failures in coronary CTA segmentation"
+type: software
+version: 1.0.0
+date-released: 2026-11-16
+license: MIT
+repository-code: "https://github.com/vhmaadhav/coronarysafe"
+authors:
+  - family-names: "V H"
+    given-names: "Maadhav"
+    affiliation: "KPR Institute of Engineering and Technology"
+    orcid: "https://orcid.org/0009-0002-9269-7337"
+preferred-citation:
+  type: article
+  title: "Simple topology does most of the work: a pre-registered evaluation of label-free triage for critical failures in coronary CTA segmentation"
+  authors:
+    - family-names: "V H"
+      given-names: "Maadhav"
+      affiliation: "KPR Institute of Engineering and Technology"
+      orcid: "https://orcid.org/0009-0002-9269-7337"
+  year: 2026
+  publisher:
+    name: "Zenodo"
+  doi: "10.5281/zenodo.24269057"
+  url: "https://doi.org/10.5281/zenodo.24269057"
