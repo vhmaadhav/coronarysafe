@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoronarySafe</title>
+<meta name="description" content="Label-free triage of critical failures in AI coronary artery segmentation from CT angiography. Pre-registered, sealed evaluation.">
+<meta property="og:title" content="CoronarySafe">
+<meta property="og:description" content="Review 20% of AI coronary segmentations, catch the ones that are dangerously wrong. No ground truth needed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23b91c1c'/%3E%3Cpath d='M9 17h4l2-6 3 11 2-5h3' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="dot"></span>CoronarySafe</a>
+    <nav>
+      <a href="#problem">Problem</a>
+      <a href="#cases">3D cases</a>
+      <a href="#budget">Results</a>
+      <a href="#robust">Robustness</a>
+      <a class="btn-sm" href="https://github.com/vhmaadhav/coronarysafe">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Quality control for AI coronary segmentation</p>
+      <h1>Find the coronary trees an AI got <em>dangerously</em> wrong, without ground truth.</h1>
+      <p class="lede">AI models segment coronary arteries from CT angiography, and sometimes lose a main artery or break it in two while still scoring above 0.90 Dice. CoronarySafe ranks every reconstruction so that a reviewer checking a fixed 20% of scans catches the critical failures.</p>
+      <div class="cta">
+        <a class="btn" href="https://doi.org/10.5281/zenodo.24269057">Read the paper</a>
+        <a class="btn ghost" href="https://github.com/vhmaadhav/coronarysafe">View the code</a>
+        <a class="btn ghost" href="#cases">Explore 3D cases</a>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat big"><span class="n">29<small>/32</small></span><span class="l">catchable critical failures found while reviewing only 20% of scans</span></div>
+      <div class="stat"><span class="n">91%</span><span class="l">of flagged scans were truly broken</span></div>
+      <div class="stat"><span class="n">160</span><span class="l">sealed test patients, scored once, on a segmenter it never saw</span></div>
+      <div class="stat"><span class="n">5<small>/5</small></span><span class="l">nnU-Net models where it beat the simple rule</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="problem" class="band">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">The problem</p>
+      <h2>Dice hides the failures that matter</h2>
+      <p>Segmentation models are judged by overlap. But a coronary tree can overlap the reference almost perfectly and still miss the proximal LAD, disconnect a trunk, or bridge the left and right trees. Those are the errors that change a stenosis grade or a simulated FFR.</p>
+      <p>Each dot is one AI reconstruction of a sealed test patient. Red dots are anatomically critical failures. Many sit at Dice 0.90 and above, where an overlap threshold would wave them through.</p>
+      <div class="seg-switch" id="dice-switch"></div>
+    </div>
+    <figure class="card">
+      <div id="dice-plot" class="plot"></div>
+      <figcaption id="dice-caption">Dice vs critical failure, 160 test patients.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="cases">
+  <div class="wrap">
+    <p class="eyebrow">Real test cases, in 3D</p>
+    <h2>What a critical failure looks like</h2>
+    <p class="sub">Four AI reconstructions from the sealed test set. Drag to rotate, scroll to zoom. Each connected piece of the prediction gets its own colour, so a broken tree shows up as extra pieces.</p>
+    <div class="tabs" id="case-tabs"></div>
+    <div class="viewer-grid">
+      <div class="viewer card" id="viewer">
+        <div class="loading" id="viewer-loading">Loading 3D model…</div>
+        <div class="toggles" id="toggles"></div>
+        <div class="hint">drag · scroll · double-click to reset</div>
+      </div>
+      <aside class="case-card card" id="case-card"></aside>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="band">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>Everything comes from the predicted mask</h2>
+    <div class="pipe">
+      <div class="step"><b>CT scan</b><span>any CCTA</span></div>
+      <div class="arrow"></div>
+      <div class="step"><b>Any segmenter</b><span>CAS-Net, Swin UNETR, FFR-UNet, nnU-Net…</span></div>
+      <div class="arrow"></div>
+      <div class="step"><b>Predicted lumen</b><span>no reference needed</span></div>
+      <div class="arrow"></div>
+      <div class="step feats"><b>Features</b><span>14 graph · 7 ostium · 1 shape CNN</span></div>
+      <div class="arrow"></div>
+      <div class="step hl"><b>Frozen score</b><span>L2 logistic, hashed</span></div>
+      <div class="arrow"></div>
+      <div class="step"><b>Review top 20%</b><span>a fixed workload</span></div>
+    </div>
+    <div class="three">
+      <div><h3>Critical, not cosmetic</h3><p>A failure counts only if it threatens a large territory: a missed or broken LM, LAD, LCx or RCA within 50 mm of the ostium, a leak into a vein-sized structure, or a left–right bridge.</p></div>
+      <div><h3>Pre-registered</h3><p>Plan, success criteria and the single frozen model were fixed before the test set was opened. Every criterion is reported, including the one that failed.</p></div>
+      <div><h3>Sealed, once</h3><p>The primary test used a segmenter the system never saw, on 160 patients scored exactly once. Follow-ups ran under dated addenda.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="budget">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">Results</p>
+      <h2>Slide the review budget</h2>
+      <p>How many critical failures would a reviewer catch, checking only the top-ranked scans? Compare CoronarySafe with the best pre-specified simple rule (number of components ≥ 10 mm) and with perfect hindsight.</p>
+      <div class="seg-switch" id="budget-switch"></div>
+      <label class="slider">
+        <span>Review budget: <b id="budget-val">20%</b> of scans (<b id="budget-k">32</b> of 160)</span>
+        <input type="range" id="budget-range"min="5" max="60" step="1" value="20">
+      </label>
+      <div class="kpis" id="budget-kpis"></div>
+      <p class="note">Computed live from the sealed per-scan scores and labels. At the pre-registered 20% budget on FFR-UNet: 29 vs 25 catches, normalised recall 0.906 vs 0.781.</p>
+    </div>
+    <figure class="card">
+      <div id="budget-plot" class="plot"></div>
+      <figcaption>Critical failures caught as the budget grows. Dashed: the best any ranking could do.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Scorecard</p>
+    <h2>Pre-registered criteria, reported as they came out</h2>
+    <div class="score">
+      <div class="crit pass"><span class="tag">pass</span><b>S1 · Catch rate</b><p>Normalised recall at 20% ≥ 0.75</p><span class="v">0.906</span></div>
+      <div class="crit fail"><span class="tag">narrow fail</span><b>S2 · Beat the simple rule</b><p>Gain ≥ +10 pp with CI above zero</p><span class="v">+12.5 pp <small>[−0.3, +23.9]</small></span></div>
+      <div class="crit pass"><span class="tag">pass</span><b>S3 · vs ensemble agreement</b><p>Non-inferior to nnU-Net fold agreement</p><span class="v">+0.41</span></div>
+      <div class="crit na"><span class="tag">too few cases</span><b>S4 · High-Dice failures</b><p>Only 2 such FFR-UNet cases</p><span class="v">n = 2</span></div>
+    </div>
+    <p class="note center">The gain over the simple rule cleared the +10 pp bar but its confidence interval touched zero. Simple topology does most of the work; the learned model adds a small, consistent edge.</p>
+  </div>
+</section>
+
+<section id="robust">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">Robustness</p>
+      <h2>Does the edge hold up?</h2>
+      <p>The advantage over the simple rule held on every reconstruction set and replicated across five nnU-Net models of the same patients. When the CT itself was degraded (more noise, lower contrast, blur), the edge shrank and finally vanished under blur.</p>
+      <p>That is the honest headline: a cheap, anatomy-aware triage captures most of what is catchable, and a learned combination adds a small but fragile increment.</p>
+    </div>
+    <figure class="card">
+      <div id="forest" class="plot"></div>
+      <figcaption>Model minus rule, normalised recall at 20%, with 95% patient-bootstrap intervals. Dashed line: the pre-registered +10 pp bar.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Read and reuse</p>
+    <h2>Paper, code and citation</h2>
+    <div class="links">
+      <a class="card linkcard" href="https://doi.org/10.5281/zenodo.24269057"><b>Paper</b><span>Simple topology does most of the work: a pre-registered evaluation of label-free triage for critical failures in coronary CTA segmentation</span><em>doi:10.5281/zenodo.24269057</em></a>
+      <a class="card linkcard" href="https://github.com/vhmaadhav/coronarysafe"><b>Code</b><span>Taxonomy, features, frozen model, sealed evaluation scripts and the full pre-registration trail. MIT licence.</span><em>github.com/vhmaadhav/coronarysafe</em></a>
+      <div class="card linkcard cite"><b>Cite</b><pre id="bib">@misc{vh2026coronarysafe,
+  title  = {Simple topology does most of the work: a
+            pre-registered evaluation of label-free triage
+            for critical failures in coronary CTA segmentation},
+  author = {V H, Maadhav},
+  year   = {2026},
+  doi    = {10.5281/zenodo.24269057}
+}</pre><button id="copy-bib" class="btn-sm">Copy BibTeX</button></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <p><b>Maadhav V H</b> · KPR Institute of Engineering and Technology · <a href="https://orcid.org/0009-0002-9269-7337">ORCID</a> · <a href="https://www.linkedin.com/in/vhmaadhav">LinkedIn</a> · <a href="https://vhmaadhav.com">vhmaadhav.com</a></p>
+    <p>Data: <a href="https://doi.org/10.1016/j.compmedimag.2023.102287">ImageCAS</a> and <a href="https://arxiv.org/abs/2608.30404">ImageCAS-X</a> (CC BY 4.0); case meshes are derived from them. Compute: AMD Instinct MI300X via AMD Developer Cloud.</p>
+    <p class="muted">Research prototype. Not clinically validated and not for diagnostic use.</p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+<script type="module" src="assets/viewer.js"></script>
+</body>
+</html>
