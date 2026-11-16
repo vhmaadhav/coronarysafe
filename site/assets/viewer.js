@@ -22,6 +22,18 @@ try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
 catch (e) {
   loading.innerHTML = "3D view needs WebGL, which is turned off in this browser.<br>Try another browser or enable hardware acceleration.";
   loading.style.textAlign = "center";
+  // still show the case tabs and case cards without the 3D view
+  const tabsNoGL = document.getElementById("case-tabs");
+  const cardOnly = async i => {
+    [...tabsNoGL.children].forEach((b, j) => b.classList.toggle("on", i === j));
+    const d = await (await fetch(`data/cases/${CASES[i].key}.json`)).json();
+    card(CASES[i], d);
+  };
+  CASES.forEach((c, i) => {
+    const b = document.createElement("button"); b.className = "tab";
+    b.innerHTML = `<b>${c.tab}</b><span>${c.title}</span>`; b.onclick = () => cardOnly(i); tabsNoGL.appendChild(b);
+  });
+  cardOnly(0);
   throw e;
 }
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -84,7 +96,7 @@ function build(data) {
   const box = new THREE.Box3().setFromObject(layers.pred.children.length ? layers.pred : group);
   const c = box.getCenter(new THREE.Vector3()), r = box.getSize(new THREE.Vector3()).length() / 2;
   controls.target.copy(c);
-  const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.95;
+  const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.72;
   camera.position.set(c.x + dist * 0.15, c.y - dist * 0.98, c.z + dist * 0.25);
   home = { pos: camera.position.clone(), target: c.clone() };
   controls.autoRotate = true;

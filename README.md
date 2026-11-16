@@ -2,6 +2,8 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24269057.svg)](https://doi.org/10.5281/zenodo.24269057)
 
+**Interactive overview with 3D test cases:** https://vhmaadhav.github.io/coronarysafe/
+
 Label-free quality control for AI coronary-artery reconstructions from coronary CT angiography (CCTA).
 CoronarySafe ranks reconstructions so that a reviewer who can check a fixed 20% of scans catches the
 anatomically critical failures (missed or broken proximal LM, LAD, LCx and RCA segments, disconnections,

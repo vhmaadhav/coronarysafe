@@ -151,6 +151,7 @@ figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
 
 /* links */
 .links { display: grid; grid-template-columns: 1fr 1fr 1.25fr; gap: 16px; margin-top: 26px; }
+.links > *, .two > *, .viewer-grid > *, .hero-grid > * { min-width: 0; }
 .linkcard { padding: 20px; color: var(--ink); display: flex; flex-direction: column; gap: 8px; }
 .linkcard:hover { text-decoration: none; border-color: var(--ink-2); }
 .linkcard span { font-size: 14px; color: var(--ink-2); }
