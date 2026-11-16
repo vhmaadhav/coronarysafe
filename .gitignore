@@ -19,3 +19,6 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/arxiv_submission.tar.gz
+
+# showcase site data (aggregate results and derived meshes) is published
+!site/data/
