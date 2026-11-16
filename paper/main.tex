@@ -36,6 +36,8 @@
 Automated coronary artery segmentation from CT angiography (CCTA) can fail in ways that matter clinically, such as a missed proximal vessel, a broken trunk or a leak into a vein, while still reaching a high Dice score. We study \emph{label-free review triage}: ranking reconstructions without ground truth so that reviewing a fixed 20\% of scans catches as many anatomically critical failures as possible. We define a reference-based taxonomy of critical failures, pre-register an analysis plan with explicit success criteria, select one model on development data (a regularised logistic model over mask-derived graph, ostium and shape-plausibility features) and evaluate it once on a sealed test set of 160 patients (ImageCAS-X), segmented by a model it never saw. The frozen model reached a normalised recall of 0.906 at the 20\% budget, catching 29 of the 32 critical failures that were catchable at that budget (29 of 64 in total) with precision 0.91. It met the pre-registered comparison with ensemble-agreement quality control. Its gain over the best pre-specified single-feature rule was $+12.5$\pp\ (95\% CI $-0.3$ to $+23.9$), narrowly missing the pre-registered superiority criterion. In pre-registered follow-up analyses, the gain replicated across five nnU-Net folds ($+11.4$\pp, 95\% CI $+3.0$ to $+20.7$; same patients), shrank or vanished when the input CTs were degraded, and was matched by an exploratory fragmentation feature. Simple, anatomy-aware topology features capture most of the achievable triage value; a learned combination adds a small, directionally consistent but fragile increment. We report every criterion, three negative findings and the full pre-registration trail, and release the code.
 \end{abstract}
 
+\noindent\textbf{Keywords:} coronary CT angiography; segmentation quality control; failure detection; topology; pre-registration; review triage
+
 \section{Introduction}
 Coronary CCTA segmentation is the first step of many downstream analyses: stenosis grading, plaque quantification and simulated fractional flow reserve (FFR). Segmentation models are usually evaluated by volumetric overlap, but overlap is a poor proxy for the errors that change clinical conclusions. A reconstruction can reach Dice $\geq 0.90$ while losing a proximal segment of the left anterior descending artery or bridging the left and right coronary trees (Fig.~\ref{fig:dice}). In deployment there is no reference mask, so such failures must be found by a reviewer, and review time is limited.
 
@@ -144,6 +146,8 @@ Further candidates were evaluated on development data and not selected: test-tim
 \end{itemize}
 A leave-one-segmenter-out (LOSO) analysis over \{CAS-Net, Swin UNETR, FFR-UNet\} was pre-specified as secondary.
 
+\paragraph{Statistical analysis.} The unit of resampling is the patient. Confidence intervals are percentile intervals from a paired patient-cluster bootstrap: patients are drawn with replacement, every ranker is re-scored on the same draw, and the review set is recomputed within each draw (2000 resamples, seed 0). For replication across nnU-Net folds, all five folds are carried together in each draw, so that their correlation is preserved. Discordant catches between two rankers are tested with an exact McNemar test \citep{mcnemar1947}. Power is estimated by patient-block resampling at larger sample sizes. No multiplicity correction is applied: S1--S3 are separate pre-specified criteria, and all other analyses are labelled secondary or exploratory.
+
 \paragraph{Pre-registration trail.} The analysis plan and eight dated addenda (A--H, ending with the freeze) were written before the test evaluation. After it, six further addenda (I--N) and ten dated errata were written before each follow-up was computed, and each follow-up was run once on the sealed outputs. Appendix~\ref{app:timeline} gives the timeline. All documents are public with their commit history. This is a self-maintained record, not a public registry, and we treat it as such.
 
 \section{Results}
@@ -167,14 +171,25 @@ nnU-Net majority vote & 30 & 0.600 & 0.420 & 0.814 & $+0.180$ \\
 \end{tabular}
 \end{table}
 
-\paragraph{Criteria.}
-\begin{itemize}
-\item \textbf{S1 passed}: $\NR$ was 0.906, against a bar of 0.75.
-\item \textbf{S2 failed}: the gain over the rule was $+12.5$\pp, above the $+10$\pp\ bar, but its 95\% CI was $[-0.3, +23.9]$\pp. The AUROC difference was positive: $+0.064$ $[+0.007, +0.119]$.
-\item \textbf{S3 passed}: the best ensemble comparator (pairwise clDice) reached $\NR$ 0.500 on majority-vote reconstructions, against 0.906 for the frozen model on FFR-UNet, a difference of $+0.41$ $[+0.16, +0.56]$. As pre-specified, this compares different reconstruction sets of the same patients. On the same majority-vote units, the frozen model reached 0.600.
-\item \textbf{S4 could not be assessed meaningfully}: only 2 FFR-UNet critical units had Dice $\geq 0.90$, and neither was flagged. For CAS-Net and Swin UNETR, 3 of 12 and 2 of 3 such units were flagged.
-\item \textbf{S5 was not implemented.}
-\end{itemize}
+\begin{table}[t]
+\centering
+\small
+\caption{Pre-registered success criteria on the primary sealed evaluation (FFR-UNet, 160 patients).}
+\label{tab:criteria}
+\begin{tabularx}{\linewidth}{llXl}
+\toprule
+ & Criterion & Result & Verdict \\
+\midrule
+S1 & $\NR \geq 0.75$ & 0.906 & \textbf{pass} \\
+S2 & gain over best rule $\geq +10$\pp, CI $> 0$ & $+12.5$\pp\ $[-0.3, +23.9]$ & \textbf{fail} (narrow) \\
+S3 & non-inferior to ensemble agreement & $+0.41$ $[+0.16, +0.56]$ & \textbf{pass} \\
+S4 & recall of Dice $\geq 0.90$ critical units $\geq 50\%$ & 0 of 2 flagged & not assessable ($n=2$) \\
+S5 & segment localisation & not implemented & -- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Criteria.} Table~\ref{tab:criteria} summarises the verdicts. S2 failed narrowly: the gain over the rule was above the $+10$\pp\ bar, but its CI included zero. The corresponding AUROC difference was positive, $+0.064$ $[+0.007, +0.119]$. For S3, the three ensemble comparators reached $\NR$ 0.433 (pairwise Dice), 0.500 (pairwise clDice) and 0.379 (Betti-0 error) on majority-vote reconstructions, against 0.906 for the frozen model on FFR-UNet. As pre-specified, this compares different reconstruction sets of the same patients. On the same majority-vote units, the frozen model reached 0.600, still ahead of the best comparator. S4 could not be assessed: only 2 FFR-UNet critical units had Dice $\geq 0.90$. For CAS-Net and Swin UNETR, 3 of 12 and 2 of 3 such units were flagged.
 
 \paragraph{Secondary.} In the pre-specified LOSO analysis, the model refit without the held-out segmenter beat the rule in 3 of 3 cases ($\NR$ 0.906 vs 0.781, 0.594 vs 0.523, 0.781 vs 0.556). The frozen model was ahead of the rule on all four reconstruction sets (Table~\ref{tab:main}). Calibration was moderate (expected calibration error 0.09--0.15; Brier 0.13--0.18), so the score should be read as a ranking, not a probability. Fig.~\ref{fig:rc} shows the risk--coverage curves.
 
@@ -188,7 +203,7 @@ nnU-Net majority vote & 30 & 0.600 & 0.420 & 0.814 & $+0.180$ \\
 \end{figure}
 
 \subsection{Pre-registered follow-up analyses}
-Figure~\ref{fig:forest} and Table~\ref{tab:follow} summarise the follow-up analyses.
+Fig.~\ref{fig:forest} and Table~\ref{tab:follow} summarise the follow-up analyses.
 
 \begin{figure}[t]
 \centering
@@ -333,6 +348,7 @@ ImageCAS and ImageCAS-X are available from their authors under their respective 
 
 \clearpage
 \begin{appendices}
+\small
 \section{Pre-registration timeline}
 \label{app:timeline}
 \begin{table}[h]
@@ -377,7 +393,7 @@ Pre-specified sensitivity variants & run 5/20\,mm; tolerance 1.0/2.0\,mm; critic
 
 \section{Frozen model}
 \label{app:model}
-The frozen score is an L2-regularised logistic regression on 22 inputs, after median imputation and z-scoring, all fitted on the 160 development units. Its largest standardised coefficients were: unattached skeleton length ($+0.33$), unattached share ($+0.26$), number of components ($+0.24$), maximum branch depth ($-0.23$), radius violations ($+0.20$) and the M4 logit ($-0.29$). The negative M4 weight is consistent with M4 being uninformative on real errors. Removing any single input (in-sample) changed development $\NR$ by at most 0.05. SHA-256 prefixes of the frozen files: model specification \texttt{56a666ef}, CNN weights \texttt{baf841cf}, orientation convention \texttt{53ea24bf}.
+The frozen score is an L2-regularised logistic regression on 22 inputs, after median imputation and z-scoring, all fitted on the 160 development units (21 critical). On development data, its cross-validated $\NR$ was 0.571, against 0.476 for the best pre-specified rule. Its largest standardised coefficients were: unattached skeleton length ($+0.33$), unattached share ($+0.26$), number of components ($+0.24$), maximum branch depth ($-0.23$), radius violations ($+0.20$) and the M4 logit ($-0.29$). The negative M4 weight is consistent with M4 being uninformative on real errors. Removing any single input (in-sample) changed development $\NR$ by at most 0.05. SHA-256 prefixes of the frozen files: model specification \texttt{56a666ef}, CNN weights \texttt{baf841cf}, orientation convention \texttt{53ea24bf}.
 
 \section{Compute}
 GPU work (M4 training and scoring, segmentation of perturbed CTs) ran on one AMD Instinct MI300X (192\,GB) via AMD Developer Cloud, using PyTorch on ROCm. Nine concurrent CAS-Net workers (about 120\,s per case with test-time augmentation) produced the 480 perturbed reconstructions in about two hours. Labelling, features and statistics ran on CPU.
