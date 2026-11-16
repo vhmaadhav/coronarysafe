@@ -1,5 +1,7 @@
 # CoronarySafe
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24269057.svg)](https://doi.org/10.5281/zenodo.24269057)
+
 Label-free quality control for AI coronary-artery reconstructions from coronary CT angiography (CCTA).
 CoronarySafe ranks reconstructions so that a reviewer who can check a fixed 20% of scans catches the
 anatomically critical failures (missed or broken proximal LM, LAD, LCx and RCA segments, disconnections,
@@ -129,8 +131,8 @@ python -m pytest -q
 
 **Simple topology does most of the work: a pre-registered evaluation of label-free triage for critical
 failures in coronary CTA segmentation.** Maadhav V H, 2026.
-PDF: [`paper/main.pdf`](paper/main.pdf) (LaTeX source in [`paper/`](paper/)). An arXiv link will be added
-here once it is available.
+Preprint: [doi:10.5281/zenodo.24269057](https://doi.org/10.5281/zenodo.24269057) (Zenodo; PDF also in
+[`paper/main.pdf`](paper/main.pdf), LaTeX source in [`paper/`](paper/)). An arXiv link will be added once available.
 
 ## Citation
 
@@ -140,7 +142,9 @@ here once it is available.
             for critical failures in coronary {CTA} segmentation},
   author = {V H, Maadhav},
   year   = {2026},
-  howpublished = {\url{https://github.com/vhmaadhav/coronarysafe}}
+  publisher = {Zenodo},
+  doi    = {10.5281/zenodo.24269057},
+  url    = {https://doi.org/10.5281/zenodo.24269057}
 }
 ```
 
